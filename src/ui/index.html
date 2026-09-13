@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>Alice Guard — Agent Financial Safety Layer</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <header class="topbar">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true">AG</div>
+        <div>
+          <p class="eyebrow">MONAD METROPOLIS · TRUST, IDENTITY &amp; AI INFRASTRUCTURE</p>
+          <h1>Alice Guard</h1>
+          <p class="tagline">A programmable financial safety layer between AI reasoning and onchain execution.</p>
+        </div>
+      </div>
+      <div class="system-state" aria-label="System capabilities">
+        <span class="mode-dot"></span>
+        <strong>OFFLINE DEMO</strong>
+        <span>NO WALLET</span>
+        <span>NO SIGNING</span>
+        <span>NO BROADCAST</span>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="panel request-panel" aria-labelledby="request-heading">
+        <div class="panel-heading">
+          <span class="step">01</span>
+          <div><p class="kicker">UNTRUSTED INPUT</p><h2 id="request-heading">Request</h2></div>
+        </div>
+
+        <label class="field-label" for="request-preview">Trusted request preview</label>
+        <textarea id="request-preview" readonly aria-describedby="request-help"></textarea>
+        <p id="request-help" class="field-help">For this deterministic demo, the browser submits only an allowlisted scenario ID.</p>
+
+        <div id="scenario-buttons" class="scenario-list" aria-label="Demo scenarios"></div>
+        <button id="run-button" class="primary-button" type="button">
+          <span>Run Guard</span><span aria-hidden="true">→</span>
+        </button>
+
+        <div class="invariant-card">
+          <span class="shield" aria-hidden="true">◇</span>
+          <div><strong>Core invariant</strong><p>LLM proposes. Deterministic code decides.</p></div>
+        </div>
+      </section>
+
+      <section class="panel decision-panel" aria-labelledby="decision-heading">
+        <div class="panel-heading">
+          <span class="step">02</span>
+          <div><p class="kicker">DETERMINISTIC BOUNDARY</p><h2 id="decision-heading">Decision</h2></div>
+          <span id="decision-badge" class="status-badge neutral">WAITING</span>
+        </div>
+
+        <div id="pipeline" class="pipeline" aria-label="Execution pipeline"></div>
+
+        <div class="decision-grid">
+          <article class="data-card">
+            <div class="card-title"><h3>Structured Intent</h3><span id="intent-state" class="micro-badge">—</span></div>
+            <div id="intent-content" class="empty-state">Run a scenario to inspect the validated intent.</div>
+          </article>
+
+          <article class="data-card risk-card">
+            <div class="card-title"><h3>Risk Assessment</h3><span id="risk-level" class="micro-badge">—</span></div>
+            <div id="risk-content" class="empty-state">No risk evaluation yet.</div>
+          </article>
+        </div>
+
+        <article class="data-card policy-card">
+          <div class="card-title"><h3>Policy Decision</h3><span id="policy-state" class="micro-badge">—</span></div>
+          <div id="policy-content" class="empty-state">No policy evaluation yet.</div>
+        </article>
+      </section>
+
+      <section class="panel plan-panel" aria-labelledby="plan-heading">
+        <div class="panel-heading">
+          <span class="step">03</span>
+          <div><p class="kicker">VALIDATED OUTPUT</p><h2 id="plan-heading">Plan &amp; Audit</h2></div>
+        </div>
+
+        <article class="data-card plan-card">
+          <div class="card-title"><h3>Transaction Plan</h3><span id="plan-state" class="micro-badge">—</span></div>
+          <div id="plan-content" class="empty-state">No transaction plan created.</div>
+        </article>
+
+        <article class="data-card audit-card">
+          <div class="card-title"><h3>Audit Chain</h3><span id="audit-state" class="micro-badge">—</span></div>
+          <div id="audit-content" class="empty-state">No audit record yet.</div>
+        </article>
+
+        <div class="execution-lock">
+          <div><span class="lock-icon" aria-hidden="true">□</span><strong>Execution</strong></div>
+          <span>NOT ATTEMPTED</span>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Alice Guard · Hackathon safety prototype</span>
+      <span id="health-status">Checking local service…</span>
+    </footer>
+
+    <div id="error-banner" class="error-banner" role="alert" hidden></div>
+  </body>
+</html>

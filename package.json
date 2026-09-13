@@ -1,0 +1,29 @@
+{
+  "name": "alice-guard",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "type": "module",
+  "description": "Deterministic financial risk and policy guard for AI agents",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "demo": "tsx scripts/run-demo.ts",
+    "demo:web": "tsx scripts/serve-demo.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify:testnet": "vitest run --config vitest.live.config.ts"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "dependencies": {
+    "viem": "^2.40.0",
+    "zod": "^4.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.2",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
+  }
+}
