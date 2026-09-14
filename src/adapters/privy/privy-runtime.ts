@@ -1,6 +1,7 @@
+import { PrivyClient } from "@privy-io/node";
 import { z } from "zod";
 
-import { PrivyNodePolicyReader, type PrivyNodeSdkLike, type PrivyPolicyReader } from "./privy-client-port";
+import { PrivyNodePolicyReader, type PrivyPolicyReader } from "./privy-client-port";
 
 const PrivyVerificationEnvironmentSchema = z
   .object({
@@ -28,9 +29,5 @@ export function hasCompletePrivyVerificationCredentials(config: PrivyVerificatio
 
 export async function loadPrivyPolicyReader(config: PrivyVerificationEnvironment): Promise<PrivyPolicyReader> {
   if (!hasCompletePrivyVerificationCredentials(config)) throw new Error("PRIVY_VERIFICATION_NOT_CONFIGURED");
-  const moduleSpecifier = "@privy-io/node";
-  const loaded = await import(moduleSpecifier) as Record<string, unknown>;
-  const Constructor = loaded["PrivyClient"] as (new (options: { appId: string; appSecret: string }) => PrivyNodeSdkLike) | undefined;
-  if (!Constructor) throw new Error("PRIVY_SDK_CONSTRUCTOR_UNAVAILABLE");
-  return new PrivyNodePolicyReader(new Constructor({ appId: config.appId!, appSecret: config.appSecret! }));
+  return new PrivyNodePolicyReader(new PrivyClient({ appId: config.appId!, appSecret: config.appSecret! }));
 }
