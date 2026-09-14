@@ -10,4 +10,6 @@ demo-output/
 
 data/*.db
 data/*.db-*
+data/privy-demo-state.json
+data/privy-demo-state.json.*.tmp
 *.log

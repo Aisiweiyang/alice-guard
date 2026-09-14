@@ -61,7 +61,7 @@ export function compilePrivyPolicy(unknownConfig: WalletPolicyConfig): CompiledW
     chain_type: "ethereum",
     rules: [
       {
-        name: "Allow exact Kuru USDC approvals within the raw-token cap",
+        name: "Allow capped Kuru USDC approvals",
         method: "eth_sendTransaction",
         action: "ALLOW",
         conditions: [

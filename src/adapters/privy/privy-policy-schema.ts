@@ -16,7 +16,7 @@ export const PrivyConditionSchema = z
 
 export const PrivyRuleSchema = z
   .object({
-    name: z.string().min(1).max(128),
+    name: z.string().min(1).max(50),
     method: z.literal("eth_sendTransaction"),
     conditions: z.array(PrivyConditionSchema).min(1).max(16),
     action: z.enum(["ALLOW", "DENY"]),
@@ -26,7 +26,7 @@ export const PrivyRuleSchema = z
 export const PrivyPolicyManifestSchema = z
   .object({
     version: z.literal("1.0"),
-    name: z.string().min(1).max(128),
+    name: z.string().min(1).max(50),
     chain_type: z.literal("ethereum"),
     rules: z.array(PrivyRuleSchema).min(1).max(16),
   })

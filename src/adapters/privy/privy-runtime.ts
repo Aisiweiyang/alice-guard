@@ -1,7 +1,9 @@
 import { PrivyClient } from "@privy-io/node";
 import { z } from "zod";
 
+import type { PrivyLiveEnvironment } from "../../config/privy-live";
 import { PrivyNodePolicyReader, type PrivyPolicyReader } from "./privy-client-port";
+import { PrivyNodeWalletReader, type PrivyWalletReader } from "./privy-wallet-client";
 
 const PrivyVerificationEnvironmentSchema = z
   .object({
@@ -30,4 +32,16 @@ export function hasCompletePrivyVerificationCredentials(config: PrivyVerificatio
 export async function loadPrivyPolicyReader(config: PrivyVerificationEnvironment): Promise<PrivyPolicyReader> {
   if (!hasCompletePrivyVerificationCredentials(config)) throw new Error("PRIVY_VERIFICATION_NOT_CONFIGURED");
   return new PrivyNodePolicyReader(new PrivyClient({ appId: config.appId!, appSecret: config.appSecret! }));
+}
+
+export function loadPrivyReadClients(config: PrivyLiveEnvironment): {
+  policyReader: PrivyPolicyReader;
+  walletReader: PrivyWalletReader;
+} {
+  if (config.appId === null || config.appSecret === null) throw new Error("PRIVY_READ_CLIENT_NOT_CONFIGURED");
+  const client = new PrivyClient({ appId: config.appId, appSecret: config.appSecret });
+  return {
+    policyReader: new PrivyNodePolicyReader(client),
+    walletReader: new PrivyNodeWalletReader(client),
+  };
 }
