@@ -183,6 +183,23 @@ function renderPlan(plan) {
   setBadge("plan-state", `${plan.transactionCount} VALIDATED`, "allow");
 }
 
+function renderWalletPolicy(walletPolicy) {
+  const container = byId("wallet-policy-content");
+  container.replaceChildren();
+  container.className = "";
+  addHash(container, "WALLET POLICY HASH", walletPolicy.walletPolicyHash);
+  container.append(element("p", "policy-mode-note", "Offline policy manifest only · no Privy wallet or signer is configured."));
+  const list = element("ul", "coverage-list");
+  walletPolicy.coverage.forEach((entry) => {
+    const item = element("li", "coverage-item");
+    item.append(element("code", "", entry.rule), element("span", entry.enforcement === "PRIVY_ENFORCED" ? "coverage-privy" : "coverage-app", entry.enforcement));
+    list.append(item);
+  });
+  container.append(list);
+  const kind = walletPolicy.status === "MATCHED" ? "allow" : walletPolicy.status === "DRIFTED" ? "deny" : "approval";
+  setBadge("wallet-policy-state", walletPolicy.status.replace("_", " "), kind);
+}
+
 function renderAudit(audit) {
   const container = byId("audit-content");
   container.replaceChildren();
@@ -207,6 +224,7 @@ function renderResult(result) {
   renderRisk(result.risk);
   renderPolicy(result.policy);
   renderPlan(result.plan);
+  renderWalletPolicy(result.walletPolicy);
   renderAudit(result.audit);
 }
 

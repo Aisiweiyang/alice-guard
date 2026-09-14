@@ -4,7 +4,7 @@ Secure financial execution and permission layer for AI agents.
 
 > LLM proposes. Deterministic code decides. Wallet policy enforces. Blockchain settles.
 
-当前状态：Phase 3（只读 Monad/Kuru 核验、确定性交易计划与 Plan Guard）。本目录不包含钱包凭据，也不能签名或广播交易。当前 Kuru 测试网 MON/USDC 市场在实测区块没有 ask 流动性，因此 live swap 路径默认阻断。
+当前状态：Phase 4A（Privy 钱包策略 manifest、策略漂移检查、执行信封和并发安全预算预留）。本目录不包含钱包凭据，也不能签名或广播交易；默认保持 `ALICE_GUARD_WALLET_MODE=disabled`。当前 Kuru 测试网 MON/USDC 市场在实测区块没有 ask 流动性，因此 live swap 路径默认阻断。
 
 ## Hackathon offline demo
 
@@ -24,6 +24,22 @@ pnpm demo:web
 
 然后打开 `http://127.0.0.1:4173`。浏览器只提交预定义场景 ID，服务端负责意图、风险、策略、Plan Guard 和审计链计算；页面不会接收钱包地址、calldata、合约地址或客户端给出的判定结果。
 
+## Privy Layer-2 policy preview
+
+离线生成确定性的 Privy policy manifest 与规则覆盖矩阵：
+
+```powershell
+pnpm privy:policy:render
+```
+
+安全检查远端 policy。默认缺少凭据时返回 `NOT_CONFIGURED`，且不会尝试签名或广播：
+
+```powershell
+pnpm privy:policy:verify
+```
+
+只读远端核验所需的本地环境变量见 `.env.example`。秘密值不得提交到 Git、传给浏览器或写入日志。
+
 ## Phase 0 artifacts
 
 - `docs/01-product-vision.md` — 产品定位与原则
@@ -41,6 +57,7 @@ pnpm demo:web
 - `docs/13-phase3-read-plan.md` — Monad/Kuru 只读核验、ABI 漂移、计划门禁与当前 live blocker
 - `docs/14-hackathon-demo-core.md` — 比赛 Demo 编排器、SQLite 审计链与固定演示场景
 - `docs/15-demo-web-ui.md` — 评委 Web Demo、API 信任边界、安全展示 DTO 与演示说明
+- `docs/16-phase4-privy-research.md` — Privy Layer-2 策略映射、已知限制与安全运行模式
 - `src/domain/schemas.ts` — 核心 TypeScript + Zod domain schema 设计稿
 
 ## Phase 1 commands

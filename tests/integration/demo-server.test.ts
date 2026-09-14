@@ -4,6 +4,7 @@ import type { Server } from "node:http";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { SqliteAuditStore } from "../../src/adapters/audit/sqlite-audit-store";
+import { DemoPresentationSchema } from "../../src/server/api-schemas";
 import { createDemoHttpServer, DemoApiService, listenOnLocalhost } from "../../src/server/demo-server";
 
 describe("local judge demo server", () => {
@@ -40,18 +41,23 @@ describe("local judge demo server", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ scenario: "allowed-small-swap" }),
     });
-    const body = await response.json();
+    const body = DemoPresentationSchema.parse(await response.json());
     expect(response.status).toBe(200);
     expect(body).toMatchObject({
       status: "prepared",
       stoppedAt: "plan",
       policy: { decision: "allow" },
       plan: { validated: true, transactionCount: 2 },
+      walletPolicy: {
+        status: "NOT_CONFIGURED",
+        mode: "offline-manifest-only",
+      },
       audit: { chainValid: true },
       execution: "not_attempted",
       capabilities: { wallet: false, signing: false, broadcast: false },
     });
-    expect(JSON.stringify(body)).not.toContain("record_json");
+    expect(body.walletPolicy.coverage).toHaveLength(15);
+    expect(JSON.stringify(body)).not.toMatch(/record_json|appSecret|privateKey|walletId/u);
   });
 
   it("rejects oversized, malformed, and wrong-content-type bodies safely", async () => {

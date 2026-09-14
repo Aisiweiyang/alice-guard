@@ -100,6 +100,19 @@ export const DemoPresentationSchema = z
       })
       .strict()
       .nullable(),
+    walletPolicy: z
+      .object({
+        status: z.enum(["MATCHED", "DRIFTED", "NOT_CONFIGURED", "UNAVAILABLE"]),
+        walletPolicyHash: Bytes32Schema,
+        mode: z.literal("offline-manifest-only"),
+        coverage: z.array(
+          z.object({
+            rule: IdentSchema,
+            enforcement: z.enum(["PRIVY_ENFORCED", "APP_ONLY", "UNSUPPORTED"]),
+          }).strict(),
+        ).min(1).max(32),
+      })
+      .strict(),
     checks: z
       .object({
         intentAccepted: z.boolean(),

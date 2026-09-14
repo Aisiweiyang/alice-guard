@@ -1,4 +1,6 @@
 import type { DemoRunResult } from "../application/demo-orchestrator";
+import { compilePrivyPolicy } from "../adapters/privy/privy-policy-compiler";
+import { DEFAULT_WALLET_POLICY_CONFIG } from "../config/wallet-policy";
 import type { DemoScenario } from "../demo/demo-template";
 import { DemoPresentationSchema, type DemoPresentation } from "../server/api-schemas";
 
@@ -11,6 +13,7 @@ export function toDemoPresentation(
   result: DemoRunResult,
   auditChainValid: boolean,
 ): DemoPresentation {
+  const walletPolicy = compilePrivyPolicy(DEFAULT_WALLET_POLICY_CONFIG);
   const transactions = result.plan?.transactions.map((transaction) => {
     const args = transaction.decodedCall.arguments;
     const approval = transaction.purpose === "approve_exact";
@@ -70,6 +73,12 @@ export function toDemoPresentation(
       validated: true,
       transactionCount: result.plan.transactions.length,
       transactions,
+    },
+    walletPolicy: {
+      status: "NOT_CONFIGURED",
+      walletPolicyHash: walletPolicy.walletPolicyHash,
+      mode: "offline-manifest-only",
+      coverage: walletPolicy.coverage.map(({ rule, enforcement }) => ({ rule, enforcement })),
     },
     checks: {
       intentAccepted,

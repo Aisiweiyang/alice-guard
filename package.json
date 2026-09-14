@@ -9,6 +9,8 @@
     "check": "tsc --noEmit",
     "demo": "tsx scripts/run-demo.ts",
     "demo:web": "tsx scripts/serve-demo.ts",
+    "privy:policy:render": "tsx scripts/render-privy-policy.ts",
+    "privy:policy:verify": "tsx scripts/verify-privy-policy.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "verify:testnet": "vitest run --config vitest.live.config.ts"
