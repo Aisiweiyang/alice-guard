@@ -9,7 +9,7 @@ export const PrivyConditionSchema = z
     field_source: z.enum(["ethereum_transaction", "ethereum_calldata"]),
     field: z.string().min(1).max(128),
     operator: z.enum(["eq", "neq", "lt", "lte", "gt", "gte", "in", "in_condition_set"]),
-    value: z.union([z.string().max(512), z.number().safe(), z.array(z.string().max(128)).max(16)]),
+    value: z.union([z.string().max(512), z.array(z.string().max(128)).max(16)]),
     abi: z.array(z.unknown()).max(32).optional(),
   })
   .strict();

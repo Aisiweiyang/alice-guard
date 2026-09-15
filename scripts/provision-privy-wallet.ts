@@ -5,14 +5,12 @@ import {
   provisionPrivyDemoWallet,
   withPrivyProvisioningLock,
 } from "../src/application/privy-live-provisioning";
+import { parsePrivyProvisioningArguments } from "../src/application/privy-provisioning-arguments";
 import { readPrivyLiveEnvironment } from "../src/config/privy-live";
 
-const arguments_ = process.argv.slice(2);
-const confirmationArgument = arguments_.find((argument) => argument.startsWith("--confirmation-hash="));
-const allowed = arguments_.every((argument) => argument === "--apply" || argument.startsWith("--confirmation-hash="));
-const confirmationHash = confirmationArgument?.slice("--confirmation-hash=".length) ?? "";
+const parsedArguments = parsePrivyProvisioningArguments(process.argv.slice(2));
 
-if (!allowed || !arguments_.includes("--apply") || confirmationArgument === undefined || confirmationHash.length !== 66) {
+if (!parsedArguments.allowed) {
   process.stdout.write(`${JSON.stringify({
     status: "DENIED",
     safeReason: "PRIVY_EXACT_APPLY_CONFIRMATION_REQUIRED",
@@ -27,7 +25,7 @@ if (!allowed || !arguments_.includes("--apply") || confirmationArgument === unde
     const config = readPrivyLiveEnvironment(process.env);
     const result = await withPrivyProvisioningLock(() => provisionPrivyDemoWallet({
       config,
-      confirmationHash,
+      confirmationHash: parsedArguments.confirmationHash,
       client: new PrivyNodeProvisioningClient(config),
       store: new PrivyPublicStateStore(),
     }));

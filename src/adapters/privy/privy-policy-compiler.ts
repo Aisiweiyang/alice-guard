@@ -65,7 +65,7 @@ export function compilePrivyPolicy(unknownConfig: WalletPolicyConfig): CompiledW
         method: "eth_sendTransaction",
         action: "ALLOW",
         conditions: [
-          { field_source: "ethereum_transaction", field: "chain_id", operator: "eq", value: config.chainId },
+          { field_source: "ethereum_transaction", field: "chain_id", operator: "eq", value: String(config.chainId) },
           { field_source: "ethereum_transaction", field: "to", operator: "eq", value: config.tokenAddress },
           { field_source: "ethereum_transaction", field: "value", operator: "eq", value: "0" },
           { field_source: "ethereum_calldata", field: "approve.spender", operator: "eq", value: config.routerAddress, abi: erc20ApproveAbi },
@@ -77,7 +77,7 @@ export function compilePrivyPolicy(unknownConfig: WalletPolicyConfig): CompiledW
         method: "eth_sendTransaction",
         action: "ALLOW",
         conditions: [
-          { field_source: "ethereum_transaction", field: "chain_id", operator: "eq", value: config.chainId },
+          { field_source: "ethereum_transaction", field: "chain_id", operator: "eq", value: String(config.chainId) },
           { field_source: "ethereum_transaction", field: "to", operator: "eq", value: config.routerAddress },
           { field_source: "ethereum_transaction", field: "value", operator: "eq", value: "0" },
           { field_source: "ethereum_calldata", field: "anyToAnySwap.marketAddresses", operator: "eq", value: [config.marketAddress], abi: kuruRouterAbi },

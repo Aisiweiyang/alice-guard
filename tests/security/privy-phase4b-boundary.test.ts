@@ -67,8 +67,7 @@ describe("Privy Phase 4B-1 capability boundary", () => {
 
   it("requires both an apply flag and exact confirmation hash in the provisioning entrypoint", async () => {
     const source = await readFile(resolve("scripts/provision-privy-wallet.ts"), "utf8");
-    expect(source).toContain('arguments_.includes("--apply")');
-    expect(source).toContain('argument.startsWith("--confirmation-hash=")');
+    expect(source).toContain("parsePrivyProvisioningArguments");
     expect(source).toContain("PRIVY_EXACT_APPLY_CONFIRMATION_REQUIRED");
     expect(source).not.toMatch(/\.rpc\s*\(|signMessage|sendTransaction|exportPrivateKey/u);
     expect(source).toContain('remoteMutationsPerformed: "UNKNOWN"');
