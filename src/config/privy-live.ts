@@ -1,3 +1,4 @@
+import { createPrivateKey } from "node:crypto";
 import { z } from "zod";
 
 export const PrivyCuidSchema = z.string().length(24).regex(/^[a-zA-Z0-9]+$/, "invalid Privy resource ID");
@@ -12,9 +13,19 @@ const OptionalAppSecretSchema = z
   .nullable();
 const OptionalAuthorizationPrivateKeySchema = z
   .string()
-  .min(28)
+  .min(40)
   .max(8_192)
-  .regex(/^wallet-auth:[A-Za-z0-9+/]{16,}={0,2}$/, "expected a current Privy wallet-auth authorization key")
+  .regex(/^(?:(?:wallet-auth|wallet-api):)?[A-Za-z0-9+/_-]+={0,2}$/, "invalid Privy authorization key encoding")
+  .refine((value) => {
+    try {
+      const encoded = value.replace(/^(?:wallet-auth|wallet-api):/, "");
+      const key = createPrivateKey({ key: Buffer.from(encoded, "base64"), format: "der", type: "pkcs8" });
+      const curve = key.asymmetricKeyDetails?.namedCurve;
+      return key.asymmetricKeyType === "ec" && (curve === "prime256v1" || curve === "P-256");
+    } catch {
+      return false;
+    }
+  }, "expected a Privy P-256 PKCS8 authorization private key")
   .nullable();
 
 export const PrivyLiveEnvironmentSchema = z

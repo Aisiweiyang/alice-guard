@@ -1,3 +1,4 @@
+import { generateKeyPairSync } from "node:crypto";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -9,7 +10,8 @@ import { PrivyLiveEnvironmentSchema } from "../../src/config/privy-live";
 import { hashCanonical } from "../../src/domain/hash";
 
 const RESOURCE_ID = "a".repeat(24);
-const PRIVATE_KEY = `wallet-auth:${Buffer.from("safe-test-key-material").toString("base64")}`;
+const TEST_PRIVATE_KEY = generateKeyPairSync("ec", { namedCurve: "P-256" }).privateKey;
+const PRIVATE_KEY = `wallet-auth:${TEST_PRIVATE_KEY.export({ format: "der", type: "pkcs8" }).toString("base64")}`;
 
 describe("Privy Phase 4B-1 dry-run plans", () => {
   it("stays local and lists missing dashboard setup", () => {
@@ -27,6 +29,8 @@ describe("Privy Phase 4B-1 dry-run plans", () => {
     expect(plan.status).toBe("READY_FOR_USER_SETUP");
     expect(plan.nextGate).toBe("USER_PRIVY_DASHBOARD_SETUP");
     expect(plan.missingEnvironment).toHaveLength(4);
+    expect(plan.appIdFingerprint).toBeNull();
+    expect(plan.ownerId).toBeNull();
     expect(plan.steps).toHaveLength(6);
     expect(plan.remoteMutationsPerformed).toBe(false);
     expect(plan.signingPerformed).toBe(false);
@@ -48,10 +52,29 @@ describe("Privy Phase 4B-1 dry-run plans", () => {
     const second = buildPrivySetupDryRunPlan(config);
     expect(first.status).toBe("READY_FOR_CONFIRMATION");
     expect(first.missingEnvironment).toEqual([]);
+    expect(first.appIdFingerprint).toBe(hashCanonical({ appId: config.appId }));
+    expect(first.ownerId).toBe(RESOURCE_ID);
     expect(first.confirmationHash).toBe(second.confirmationHash);
     expect(first.policyCreateIdempotencyKey).toBe(second.policyCreateIdempotencyKey);
     expect(JSON.stringify(first)).not.toContain(config.appSecret);
     expect(JSON.stringify(first)).not.toContain(config.authorizationPrivateKey);
+  });
+
+  it("binds confirmation and idempotency keys to the exact app and owner", () => {
+    const base = {
+      mode: "privy-provision" as const,
+      appId: "alice-test-app",
+      appSecret: "test-secret-value-with-enough-length",
+      authorizationKeyId: RESOURCE_ID,
+      authorizationPrivateKey: PRIVATE_KEY,
+      policyId: null,
+      walletId: null,
+    };
+    const first = buildPrivySetupDryRunPlan(PrivyLiveEnvironmentSchema.parse(base));
+    const second = buildPrivySetupDryRunPlan(PrivyLiveEnvironmentSchema.parse({ ...base, authorizationKeyId: "b".repeat(24) }));
+    expect(second.confirmationHash).not.toBe(first.confirmationHash);
+    expect(second.policyCreateIdempotencyKey).not.toBe(first.policyCreateIdempotencyKey);
+    expect(second.walletCreateIdempotencyKey).not.toBe(first.walletCreateIdempotencyKey);
   });
 
   it("keeps every denial case unattempted and approval-gated", () => {

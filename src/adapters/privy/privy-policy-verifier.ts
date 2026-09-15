@@ -19,13 +19,28 @@ const RemotePolicySchema = z
   })
   .passthrough();
 
-function projectRemotePolicy(candidate: unknown): PrivyPolicyManifest {
+const RemotePolicyRuleSchema = z
+  .object({
+    name: z.unknown(),
+    method: z.unknown(),
+    conditions: z.unknown(),
+    action: z.unknown(),
+  })
+  .passthrough();
+
+export function projectRemotePolicy(candidate: unknown): PrivyPolicyManifest {
   const remote = RemotePolicySchema.parse(candidate);
+  const rules = z.array(RemotePolicyRuleSchema).max(16).parse(remote.rules).map((rule) => ({
+    name: rule.name,
+    method: rule.method,
+    conditions: rule.conditions,
+    action: rule.action,
+  }));
   return PrivyPolicyManifestSchema.parse({
     version: remote.version,
     name: remote.name,
     chain_type: remote.chain_type,
-    rules: remote.rules,
+    rules,
   });
 }
 export async function verifyPrivyPolicy(

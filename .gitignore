@@ -12,4 +12,5 @@ data/*.db
 data/*.db-*
 data/privy-demo-state.json
 data/privy-demo-state.json.*.tmp
+data/privy-provision.lock
 *.log

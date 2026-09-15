@@ -18,6 +18,7 @@
 
 ```powershell
 pnpm privy:configure
+pnpm privy:owner:verify
 pnpm privy:wallet:plan
 pnpm privy:wallet:denials
 pnpm privy:wallet:verify
@@ -26,7 +27,7 @@ pnpm privy:wallet:revoke:plan
 
 默认 `ALICE_GUARD_WALLET_MODE=disabled`。此时计划命令会列出缺失的本地配置，只读核验返回 `NOT_CONFIGURED`，不会发起网络调用。
 
-`pnpm privy:configure` 只应在本机交互式终端运行。App Secret 与当前格式的 `wallet-auth:...` authorization private key 使用隐藏输入，配置写入 Git 已忽略的 `.env.local`，并在 Windows 上移除继承 ACL、仅授予当前用户访问。工具不会打印 secret，且初始模式仍是 `disabled`。不要转换、删改 `wallet-auth:` 前缀，也不要通过聊天、命令参数或 CI 日志传递 secret。
+`pnpm privy:configure` 只应在本机交互式终端运行。App Secret 与 authorization private key 使用隐藏输入，配置写入 Git 已忽略的 `.env.local`，并在 Windows 上移除继承 ACL、仅授予当前用户访问。工具按锁定 SDK 的实际兼容行为接受当前 `wallet-auth:`、旧版 `wallet-api:` 或无前缀 PKCS8，但会验证密钥确实是 P-256 PKCS8。工具不会打印 secret，且初始模式仍是 `disabled`。不要自行转换或删改密钥，也不要通过聊天、命令参数或 CI 日志传递 secret。
 
 只读核验要求：
 
@@ -65,6 +66,8 @@ PRIVY_WALLET_ID
 - 任一步漂移或 provider error 都停止，不能继续钱包创建；
 - public state 原子写入，且绝不落盘 secret；
 - 无签名、无广播、无资产充值。
+
+这些 gates 已在本地实现并通过测试，但远端 provisioning 尚未执行。实现额外要求确认哈希绑定 `appIdFingerprint`、准确 `ownerId` 和 policy hash；创建前通过只读 Key Quorum GET 将远端公钥与本机私钥派生公钥匹配。远端入口仅接受 `--apply` 与精确 `--confirmation-hash`，并使用文件锁和公开状态机防止并发或重复创建。任何失败都把远端 mutation 状态保守报告为 `UNKNOWN`，随后必须先查看公开状态和 Privy Dashboard，不能盲目重试。
 
 负向测试也不能把“模拟失败”冒充 policy denial。Privy 的交易模拟可能发生在 policy evaluation 之前；只有可归因、可重复、返回明确 policy 拒绝的结果才算证据。任何会产生签名或链上副作用的测试都要另行确认。
 

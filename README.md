@@ -4,7 +4,7 @@ Secure financial execution and permission layer for AI agents.
 
 > LLM proposes. Deterministic code decides. Wallet policy enforces. Blockchain settles.
 
-当前状态：Phase 4B-1（Privy 测试钱包的安全准备、只读绑定核验、负向用例与撤销 dry-run）。本目录不包含钱包凭据，也不能创建/归档钱包、修改远端策略、签名或广播交易；默认保持 `ALICE_GUARD_WALLET_MODE=disabled`。当前 Kuru 测试网 MON/USDC 市场在实测区块没有 ask 流动性，因此 live swap 路径默认阻断。
+当前状态：Phase 4B-2 provisioning 已准备、尚未执行。它要求绑定具体 App/Owner 的确认哈希，只允许幂等创建一个 Privy Policy 和一个零余额 EVM 测试钱包，并在每次创建后立即只读回验。本目录不会提交钱包凭据，也没有交易签名、广播或充值能力；默认保持 `ALICE_GUARD_WALLET_MODE=disabled`。当前 Kuru 测试网 MON/USDC 市场在实测区块没有 ask 流动性，因此 live swap 路径默认阻断。
 
 ## Hackathon offline demo
 
@@ -46,6 +46,7 @@ pnpm privy:policy:verify
 
 ```powershell
 pnpm privy:configure
+pnpm privy:owner:verify
 ```
 
 生成确定性的测试钱包/策略创建计划（不会调用 Privy 写接口）：
@@ -64,6 +65,8 @@ pnpm privy:wallet:verify
 ```
 
 `setup-demo-wallet.ts --apply` 及任何 live 负向测试参数都会 fail closed。Phase 4B-1 到此为止；创建远端 policy/wallet、实际拒绝测试和撤销动作都需要下一阶段的逐项人工确认。完整交接见 `docs/17-phase4b-live-privy.md`。
+
+Phase 4B-2 的远端入口是 `privy:wallet:provision`，但缺少 `--apply`、精确 confirmation hash 或临时 `privy-provision` 模式时都会拒绝执行。不要自行运行；先审查 `privy:wallet:plan` 的最新输出并获得逐次确认。
 
 ## Phase 0 artifacts
 

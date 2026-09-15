@@ -38,8 +38,10 @@ export const PrivySetupDryRunPlanSchema = z
     chainId: z.literal(10143),
     walletDisplayName: z.literal("Alice Guard Hackathon Test Wallet"),
     walletExternalId: z.literal("alice-guard-hackathon-testnet-v1"),
+    appIdFingerprint: Bytes32Schema.nullable(),
     walletPolicyHash: Bytes32Schema,
     ownerConfigured: z.boolean(),
+    ownerId: PrivyCuidSchema.nullable(),
     missingEnvironment: z.array(EnvironmentVariableNameSchema),
     policyCreateIdempotencyKey: z.string().uuid(),
     walletCreateIdempotencyKey: z.string().uuid(),
@@ -65,6 +67,12 @@ function uuidFromHash(value: unknown): string {
 export function buildPrivySetupDryRunPlan(config: PrivyLiveEnvironment): PrivySetupDryRunPlan {
   const compiled = compilePrivyPolicy(DEFAULT_WALLET_POLICY_CONFIG);
   const missingEnvironment = missingPrivySetupVariables(config);
+  const appIdFingerprint = config.appId === null ? null : hashCanonical({ appId: config.appId });
+  const idempotencyScope = {
+    appIdFingerprint,
+    ownerId: config.authorizationKeyId,
+    walletPolicyHash: compiled.walletPolicyHash,
+  };
   const body = {
     schemaVersion: "phase4b.setup.v1" as const,
     mode: "dry-run" as const,
@@ -72,11 +80,13 @@ export function buildPrivySetupDryRunPlan(config: PrivyLiveEnvironment): PrivySe
     chainId: 10143 as const,
     walletDisplayName: "Alice Guard Hackathon Test Wallet" as const,
     walletExternalId: "alice-guard-hackathon-testnet-v1" as const,
+    appIdFingerprint,
     walletPolicyHash: compiled.walletPolicyHash,
     ownerConfigured: config.authorizationKeyId !== null,
+    ownerId: config.authorizationKeyId,
     missingEnvironment,
-    policyCreateIdempotencyKey: uuidFromHash({ operation: "create-policy", hash: compiled.walletPolicyHash }),
-    walletCreateIdempotencyKey: uuidFromHash({ operation: "create-wallet", hash: compiled.walletPolicyHash }),
+    policyCreateIdempotencyKey: uuidFromHash({ operation: "create-policy", ...idempotencyScope }),
+    walletCreateIdempotencyKey: uuidFromHash({ operation: "create-wallet", ...idempotencyScope }),
     steps: [
       { order: 1, action: "validate_local_policy", state: "LOCAL_ONLY", safeSummary: "Validate the strict, default-deny Monad testnet policy manifest." },
       { order: 2, action: "create_remote_policy", state: "REQUIRES_USER_CONFIRMATION", safeSummary: "Create exactly one owned Privy policy with the reviewed manifest." },

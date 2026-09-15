@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { PrivyNodeWalletReader } from "../../src/adapters/privy/privy-wallet-client";
+import { PrivyNodeProvisioningClient } from "../../src/adapters/privy/privy-provisioning-client";
 
 const PHASE4B_FILES = [
   "scripts/configure-privy-local.ps1",
@@ -50,6 +51,32 @@ describe("Privy Phase 4B-1 capability boundary", () => {
     expect(source).toContain('ALICE_GUARD_WALLET_MODE=disabled');
     expect(source).toContain('".env.local"');
     expect(source).toContain("SetAccessRuleProtection($true, $false)");
+    expect(source).toContain('Write-Host "SAFE_STAGE=$stage"');
+    expect(source).toContain("Test-PrivyAuthorizationPrivateKey");
     expect(source).not.toMatch(/Write-(?:Host|Output).*\$(?:appSecret|authorizationPrivateKey)/u);
+  });
+
+  it("limits the Phase 4B-2 SDK adapter to owner reads and two provisioning creates", async () => {
+    const names = Object.getOwnPropertyNames(PrivyNodeProvisioningClient.prototype);
+    expect(names).toEqual(["constructor", "verifyOwnerKey", "createPolicy", "readPolicy", "createWallet", "readWallet"]);
+    const source = await readFile(resolve("src/adapters/privy/privy-provisioning-client.ts"), "utf8");
+    expect(source).not.toMatch(/\.rpc\s*\(|\.rawSign\s*\(|\.transfer\s*\(|\.sendTransaction\s*\(|\.exportPrivateKey\s*\(/u);
+    expect(source.match(/\.create\s*\(/gu)).toHaveLength(2);
+    expect(source.match(/idempotency_key:/gu)).toHaveLength(2);
+  });
+
+  it("requires both an apply flag and exact confirmation hash in the provisioning entrypoint", async () => {
+    const source = await readFile(resolve("scripts/provision-privy-wallet.ts"), "utf8");
+    expect(source).toContain('arguments_.includes("--apply")');
+    expect(source).toContain('argument.startsWith("--confirmation-hash=")');
+    expect(source).toContain("PRIVY_EXACT_APPLY_CONFIRMATION_REQUIRED");
+    expect(source).not.toMatch(/\.rpc\s*\(|signMessage|sendTransaction|exportPrivateKey/u);
+    expect(source).toContain('remoteMutationsPerformed: "UNKNOWN"');
+  });
+
+  it("keeps owner verification read-only", async () => {
+    const source = await readFile(resolve("scripts/verify-privy-owner.ts"), "utf8");
+    expect(source).toContain("verifyOwnerKey");
+    expect(source).not.toMatch(/createPolicy|createWallet|\.create\s*\(|\.rpc\s*\(|signMessage|sendTransaction/u);
   });
 });

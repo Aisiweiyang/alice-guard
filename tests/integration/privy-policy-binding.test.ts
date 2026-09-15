@@ -14,7 +14,11 @@ const ADDRESS = `0x${"12".repeat(20)}`;
 function readers(walletOverrides: Record<string, unknown> = {}): [PrivyPolicyReader, PrivyWalletReader] {
   const expected = compilePrivyPolicy(DEFAULT_WALLET_POLICY_CONFIG);
   return [
-    { readPolicy: async () => ({ ...expected.manifest, app_secret: "must-not-project" }) },
+    { readPolicy: async () => ({
+      ...expected.manifest,
+      app_secret: "must-not-project",
+      rules: expected.manifest.rules.map((rule, index) => ({ ...rule, id: `server-rule-${index}` })),
+    }) },
     {
       readWallet: async () => ({
         id: WALLET_ID,
