@@ -42,6 +42,12 @@ pnpm privy:policy:verify
 
 ## Privy Phase 4B-1 safe preparation
 
+先在本机终端运行隐藏输入配置工具。它把秘密写入 Git 已忽略的 `.env.local`，并将钱包模式保持为 `disabled`：
+
+```powershell
+pnpm privy:configure
+```
+
 生成确定性的测试钱包/策略创建计划（不会调用 Privy 写接口）：
 
 ```powershell

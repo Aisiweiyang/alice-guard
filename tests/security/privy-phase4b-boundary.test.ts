@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { PrivyNodeWalletReader } from "../../src/adapters/privy/privy-wallet-client";
 
 const PHASE4B_FILES = [
+  "scripts/configure-privy-local.ps1",
   "scripts/setup-demo-wallet.ts",
   "scripts/verify-wallet-policy.ts",
   "scripts/test-wallet-policy-denials.ts",
@@ -41,5 +42,14 @@ describe("Privy Phase 4B-1 capability boundary", () => {
       expect(source).toContain("DENIED");
       expect(source).toContain("--dry-run");
     }
+  });
+
+  it("collects secrets through hidden local input and leaves wallet mode disabled", async () => {
+    const source = await readFile(resolve("scripts/configure-privy-local.ps1"), "utf8");
+    expect(source).toContain("Read-Host -Prompt $Prompt -AsSecureString");
+    expect(source).toContain('ALICE_GUARD_WALLET_MODE=disabled');
+    expect(source).toContain('".env.local"');
+    expect(source).toContain("SetAccessRuleProtection($true, $false)");
+    expect(source).not.toMatch(/Write-(?:Host|Output).*\$(?:appSecret|authorizationPrivateKey)/u);
   });
 });
