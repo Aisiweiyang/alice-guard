@@ -12,9 +12,9 @@ const OptionalAppSecretSchema = z
   .nullable();
 const OptionalAuthorizationPrivateKeySchema = z
   .string()
-  .min(32)
+  .min(28)
   .max(8_192)
-  .regex(/^[A-Za-z0-9+/]+={0,2}$/, "expected base64 PKCS8 without PEM headers")
+  .regex(/^wallet-auth:[A-Za-z0-9+/]{16,}={0,2}$/, "expected a current Privy wallet-auth authorization key")
   .nullable();
 
 export const PrivyLiveEnvironmentSchema = z

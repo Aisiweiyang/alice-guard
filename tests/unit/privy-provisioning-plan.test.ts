@@ -9,7 +9,7 @@ import { PrivyLiveEnvironmentSchema } from "../../src/config/privy-live";
 import { hashCanonical } from "../../src/domain/hash";
 
 const RESOURCE_ID = "a".repeat(24);
-const PRIVATE_KEY = Buffer.from("safe-test-pkcs8-placeholder-value").toString("base64");
+const PRIVATE_KEY = `wallet-auth:${Buffer.from("safe-test-key-material").toString("base64")}`;
 
 describe("Privy Phase 4B-1 dry-run plans", () => {
   it("stays local and lists missing dashboard setup", () => {

@@ -56,7 +56,7 @@ try {
   $appId = Read-RequiredPublicValue -Prompt "Privy App ID" -Pattern '^[A-Za-z0-9_-]{1,256}$' -ErrorCode "PRIVY_APP_ID_REJECTED"
   $authorizationKeyId = Read-RequiredPublicValue -Prompt "Privy Authorization Key ID" -Pattern '^[A-Za-z0-9]{24}$' -ErrorCode "PRIVY_AUTHORIZATION_KEY_ID_REJECTED"
   $appSecret = Read-RequiredSecretValue -Prompt "Privy App Secret (hidden)" -Pattern '^[A-Za-z0-9._~+/=:-]+$' -MinimumLength 16 -ErrorCode "PRIVY_APP_SECRET_REJECTED"
-  $authorizationPrivateKey = Read-RequiredSecretValue -Prompt "Privy Authorization Private Key, base64 PKCS8 (hidden)" -Pattern '^[A-Za-z0-9+/]+={0,2}$' -MinimumLength 32 -ErrorCode "PRIVY_AUTHORIZATION_PRIVATE_KEY_REJECTED"
+  $authorizationPrivateKey = Read-RequiredSecretValue -Prompt "Privy Authorization Private Key, wallet-auth:... (hidden)" -Pattern '^wallet-auth:[A-Za-z0-9+/]{16,}={0,2}$' -MinimumLength 28 -ErrorCode "PRIVY_AUTHORIZATION_PRIVATE_KEY_REJECTED"
 
   $lines = @(
     "# Alice Guard local-only Privy configuration. Never commit or share this file."

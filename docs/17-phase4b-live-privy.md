@@ -26,7 +26,7 @@ pnpm privy:wallet:revoke:plan
 
 默认 `ALICE_GUARD_WALLET_MODE=disabled`。此时计划命令会列出缺失的本地配置，只读核验返回 `NOT_CONFIGURED`，不会发起网络调用。
 
-`pnpm privy:configure` 只应在本机交互式终端运行。App Secret 与 authorization private key 使用隐藏输入，配置写入 Git 已忽略的 `.env.local`，并在 Windows 上移除继承 ACL、仅授予当前用户访问。工具不会打印 secret，且初始模式仍是 `disabled`。不要通过聊天、命令参数或 CI 日志传递 secret。
+`pnpm privy:configure` 只应在本机交互式终端运行。App Secret 与当前格式的 `wallet-auth:...` authorization private key 使用隐藏输入，配置写入 Git 已忽略的 `.env.local`，并在 Windows 上移除继承 ACL、仅授予当前用户访问。工具不会打印 secret，且初始模式仍是 `disabled`。不要转换、删改 `wallet-auth:` 前缀，也不要通过聊天、命令参数或 CI 日志传递 secret。
 
 只读核验要求：
 
@@ -79,5 +79,6 @@ PRIVY_WALLET_ID
 - Create wallet: https://docs.privy.io/api-reference/wallets/create
 - Wallet owners: https://docs.privy.io/controls/authorization-keys/using-owners/overview
 - Idempotency keys: https://docs.privy.io/api-reference/idempotency-keys
+- Privy security checklist and current secret formats: https://docs.privy.io/security/implementation-guide/security-checklist
 
 接口与约束可能变化。进入 Phase 4B-2 前必须再次核对官方文档和锁定的 `@privy-io/node` 版本。
