@@ -6,10 +6,10 @@
 
 `不可信请求 → 结构化意图 → 风险评估 → 确定性策略 → Plan Guard → 哈希链审计`
 
-这是离线比赛演示，不是钱包或交易应用。页面和 API 都明确保持以下能力关闭：
+默认命令是离线比赛演示；Phase 4C 另提供实时、只读的 Privy 状态面板。两种模式都明确保持以下执行能力关闭：
 
 - OFFLINE DEMO
-- NO WALLET
+- NO WALLET EXECUTION
 - NO SIGNING
 - NO BROADCAST
 - EXECUTION NOT ATTEMPTED
@@ -92,7 +92,7 @@ Web Demo 使用确定性的离线 evidence/quote fixture，只用于展示 Alice
 
 ## 已知限制与 Phase 4 入口
 
-- 当前没有 Privy 或任何钱包连接。
-- 当前没有用户身份、session、签名、广播、交易回执或资金托管。
+- `pnpm demo:web` 不读取 Privy；`pnpm demo:web:live` 只读核验已创建的专用 Privy policy/wallet。
+- 当前没有用户 session、签名、广播、交易回执或资金托管。
 - 当前没有公网部署；演示服务器只用于本机比赛展示。
-- Phase 4 若接入 Privy，应从独立身份层开始，并继续保持策略决策、签名授权、广播和审计为不同边界；在完成权限、重放、会话、额度和链上仿真审查前，不得开放真实资金路径。
+- 实时面板不改变离线场景的 evidence，也不会把 fixture 伪装成链上执行。真实资金路径仍需单独完成权限、重放、额度、仿真和回执审查。

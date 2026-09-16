@@ -45,6 +45,20 @@ describe("judge demo API trust boundary", () => {
     });
   });
 
+  it("never exposes provider errors through the Privy status route", async () => {
+    const unsafeService = new DemoApiService(store, {
+      read: async () => { throw new Error("appSecret=provider-secret privateKey=provider-key"); },
+    });
+    const reply = await unsafeService.privyStatus();
+    expect(reply.status).toBe(200);
+    expect(reply.body).toMatchObject({
+      status: "DEGRADED",
+      safeReason: "PRIVY_LIVE_STATUS_UNAVAILABLE",
+      capabilities: { signing: false, broadcast: false, funding: false },
+    });
+    expect(JSON.stringify(reply.body)).not.toMatch(/provider-secret|provider-key|appSecret|privateKey/u);
+  });
+
   it("does not expose paths, SQLite errors, or stack traces", async () => {
     const invalid = await service.run({ scenario: "allowed-small-swap", unexpected: true });
     const serialized = JSON.stringify(invalid.body);

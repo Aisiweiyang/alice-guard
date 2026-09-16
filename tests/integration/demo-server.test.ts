@@ -4,6 +4,7 @@ import type { Server } from "node:http";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { SqliteAuditStore } from "../../src/adapters/audit/sqlite-audit-store";
+import { PrivyJudgeStatusSchema } from "../../src/application/privy-judge-status";
 import { DemoPresentationSchema } from "../../src/server/api-schemas";
 import { createDemoHttpServer, DemoApiService, listenOnLocalhost } from "../../src/server/demo-server";
 
@@ -58,6 +59,17 @@ describe("local judge demo server", () => {
     });
     expect(body.walletPolicy.coverage).toHaveLength(15);
     expect(JSON.stringify(body)).not.toMatch(/record_json|appSecret|privateKey|walletId/u);
+  });
+
+  it("serves a safe disabled Privy status by default", async () => {
+    const response = await fetch(`${origin}/api/privy/status`);
+    const body = PrivyJudgeStatusSchema.parse(await response.json());
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      mode: "disabled",
+      status: "NOT_CONFIGURED",
+      capabilities: { walletProvisioned: false, signing: false, broadcast: false, funding: false },
+    });
   });
 
   it("rejects oversized, malformed, and wrong-content-type bodies safely", async () => {

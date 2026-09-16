@@ -9,6 +9,8 @@
     "check": "tsc --noEmit",
     "demo": "tsx scripts/run-demo.ts",
     "demo:web": "tsx scripts/serve-demo.ts",
+    "demo:web:live": "node --env-file=.env.local --import tsx scripts/serve-demo.ts --privy-status",
+    "evidence:privy": "node --env-file=.env.local --import tsx scripts/export-privy-evidence.ts",
     "privy:policy:render": "tsx scripts/render-privy-policy.ts",
     "privy:policy:verify": "node --env-file-if-exists=.env.local --import tsx scripts/verify-privy-policy.ts",
     "privy:configure": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/configure-privy-local.ps1",

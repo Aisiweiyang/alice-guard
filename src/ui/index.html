@@ -21,9 +21,9 @@
         </div>
       </div>
       <div class="system-state" aria-label="System capabilities">
-        <span class="mode-dot"></span>
-        <strong>OFFLINE DEMO</strong>
-        <span>NO WALLET</span>
+        <span id="mode-dot" class="mode-dot"></span>
+        <strong id="runtime-mode">READ-ONLY DEMO</strong>
+        <span id="wallet-runtime">WALLET STATUS CHECKING</span>
         <span>NO SIGNING</span>
         <span>NO BROADCAST</span>
       </div>
@@ -89,6 +89,11 @@
           <div id="plan-content" class="empty-state">No transaction plan created.</div>
         </article>
 
+        <article class="data-card live-privy-card">
+          <div class="card-title"><h3>Live Privy Guard</h3><span id="live-privy-state" class="micro-badge">CHECKING</span></div>
+          <div id="live-privy-content" class="empty-state">Reading the safe wallet status endpoint.</div>
+        </article>
+
         <article class="data-card wallet-policy-card">
           <div class="card-title"><h3>Layer 2 · Privy Policy</h3><span id="wallet-policy-state" class="micro-badge">—</span></div>
           <div id="wallet-policy-content" class="empty-state">Offline manifest not inspected yet.</div>
@@ -101,7 +106,7 @@
 
         <div class="execution-lock">
           <div><span class="lock-icon" aria-hidden="true">□</span><strong>Execution</strong></div>
-          <span>NOT ATTEMPTED</span>
+          <span>DISABLED · NOT ATTEMPTED</span>
         </div>
       </section>
     </main>

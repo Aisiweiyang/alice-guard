@@ -6,6 +6,11 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import type { SqliteAuditStore } from "../adapters/audit/sqlite-audit-store";
 import { runDemoRequest } from "../application/demo-orchestrator";
 import type { IdGenerator } from "../application/ports";
+import {
+  DisabledPrivyJudgeStatusProvider,
+  type PrivyJudgeStatusProvider,
+  unavailablePrivyJudgeStatus,
+} from "../application/privy-judge-status";
 import { createDemoDependencies, DEMO_SCENARIOS, type DemoScenario } from "../demo/demo-template";
 import { toDemoPresentation } from "../ui/presentation";
 import {
@@ -51,9 +56,11 @@ function findScenario(name: string): DemoScenario | undefined {
 
 export class DemoApiService {
   readonly #store: SqliteAuditStore;
+  readonly #privyStatusProvider: PrivyJudgeStatusProvider;
 
-  constructor(store: SqliteAuditStore) {
+  constructor(store: SqliteAuditStore, privyStatusProvider: PrivyJudgeStatusProvider = new DisabledPrivyJudgeStatusProvider()) {
     this.#store = store;
+    this.#privyStatusProvider = privyStatusProvider;
   }
 
   health(): ApiReply {
@@ -99,6 +106,14 @@ export class DemoApiService {
     return { status: 200, body: { chainValid: this.#store.verifyChain(), records } };
   }
 
+  async privyStatus(): Promise<ApiReply> {
+    try {
+      return { status: 200, body: await this.#privyStatusProvider.read() };
+    } catch {
+      return { status: 200, body: unavailablePrivyJudgeStatus() };
+    }
+  }
+
   async run(candidate: unknown): Promise<ApiReply> {
     const parsed = DemoRunRequestSchema.safeParse(candidate);
     if (!parsed.success) return safeError(400, "INVALID_DEMO_REQUEST", "Request must contain one supported scenario only.");
@@ -121,6 +136,7 @@ export class DemoApiService {
     if (method === "GET" && pathname === "/api/health") return this.health();
     if (method === "GET" && pathname === "/api/scenarios") return this.scenarios();
     if (method === "GET" && pathname === "/api/audits") return this.audits();
+    if (method === "GET" && pathname === "/api/privy/status") return this.privyStatus();
     if (method === "POST" && pathname === "/api/demo") return this.run(body);
     if (pathname.startsWith("/api/")) return safeError(404, "API_ROUTE_NOT_FOUND", "API route not found.");
     return safeError(405, "METHOD_NOT_ALLOWED", "Method not allowed.");

@@ -1,8 +1,10 @@
-# Phase 4B-1: Privy live preparation without live authority
+# Phase 4B: Privy provisioning history and live boundary
 
 基准日期：2026-09-14（Asia/Shanghai）。
 
-## Outcome
+> 状态更新（2026-09-15）：Phase 4B-2 已经在精确 confirmation hash 门禁下完成。创建的公开资源为 policy `mx1nnjw8cs4jlh0hzenclu6q`、wallet `gpqzfry67wit2ef7qajovkot`、地址 `0x73180c3581933490E2108036C8F89b0224B87285`；owner `vr277t5pq4j4wvvo7oxuafye` 与 policy hash `0x77b1ce7652daf32b89dea09c4644d0b31885cd8aad140f8e1c341b81c52c72dc` 已远程回读匹配。Monad 测试网 MON 与 Kuru USDC 余额均为零。以下 Phase 4B-1 内容保留为历史安全门说明；当前只读展示见 `18-phase4c-live-privy-status.md`。
+
+## Phase 4B-1 historical outcome
 
 本阶段把 Alice Guard 从离线策略预览推进到“可审查的远端接入准备”，但刻意不获得资金执行能力。代码只能：
 
@@ -67,7 +69,7 @@ PRIVY_WALLET_ID
 - public state 原子写入，且绝不落盘 secret；
 - 无签名、无广播、无资产充值。
 
-这些 gates 已在本地实现并通过测试，但远端 provisioning 尚未执行。实现额外要求确认哈希绑定 `appIdFingerprint`、准确 `ownerId` 和 policy hash；创建前通过只读 Key Quorum GET 将远端公钥与本机私钥派生公钥匹配。远端入口仅接受 `--apply` 与精确 `--confirmation-hash`，并使用文件锁和公开状态机防止并发或重复创建。任何失败都把远端 mutation 状态保守报告为 `UNKNOWN`，随后必须先查看公开状态和 Privy Dashboard，不能盲目重试。
+这些 gates 已实现、通过测试并在 Phase 4B-2 的受控创建中实际执行。确认哈希绑定 `appIdFingerprint`、准确 `ownerId` 和 policy hash；创建前通过只读 Key Quorum GET 将远端公钥与本机私钥派生公钥匹配。远端入口仅接受 `--apply` 与精确 `--confirmation-hash`，并使用文件锁和公开状态机防止并发或重复创建。任何失败仍把远端 mutation 状态保守报告为 `UNKNOWN`，随后必须先查看公开状态和 Privy Dashboard，不能盲目重试。
 
 负向测试也不能把“模拟失败”冒充 policy denial。Privy 的交易模拟可能发生在 policy evaluation 之前；只有可归因、可重复、返回明确 policy 拒绝的结果才算证据。任何会产生签名或链上副作用的测试都要另行确认。
 

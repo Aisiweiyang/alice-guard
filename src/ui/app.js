@@ -1,6 +1,6 @@
 "use strict";
 
-const state = { scenarios: [], selected: null, running: false };
+const state = { scenarios: [], selected: null, running: false, privyStatus: null };
 const byId = (id) => document.getElementById(id);
 
 function element(tag, className, text) {
@@ -154,6 +154,57 @@ function addHash(container, label, value) {
   container.append(block);
 }
 
+function renderPrivyStatus(status) {
+  const container = byId("live-privy-content");
+  container.replaceChildren();
+  state.privyStatus = status;
+  if (!status || status.status === "NOT_CONFIGURED" || !status.wallet || !status.policy) {
+    container.className = "empty-state";
+    container.textContent = "Live Privy status is disabled. The deterministic decision demo remains available.";
+    setBadge("live-privy-state", "NOT CONFIGURED", "approval");
+    byId("runtime-mode").textContent = "OFFLINE DECISION DEMO";
+    byId("wallet-runtime").textContent = "WALLET STATUS OFF";
+    return;
+  }
+
+  container.className = "";
+  const checks = element("div", "live-check-grid");
+  [
+    ["PUBLIC STATE", status.liveChecks.publicState],
+    ["PRIVY BINDING", status.liveChecks.remoteBinding],
+    ["MONAD BALANCE", status.liveChecks.onchainBalances],
+  ].forEach(([label, value]) => {
+    const item = element("div", "live-check-item");
+    item.append(element("span", "", label), element("strong", value === "MATCHED" ? "allow-text" : "warning-text", value));
+    checks.append(item);
+  });
+  const details = element("dl", "definition-grid live-definition-grid");
+  const nativeBalance = status.balances ? `${status.balances.nativeBalanceRaw} wei MON` : "UNAVAILABLE";
+  const tokenBalance = status.balances ? `${status.balances.tokenBalanceRaw} base units USDC` : "UNAVAILABLE";
+  [
+    ["Wallet", status.wallet.address],
+    ["Policy ID", status.policy.id],
+    ["Policy bound", status.policy.bound === true ? "YES" : status.policy.bound === false ? "NO" : "UNKNOWN"],
+    ["Owner matched", status.policy.ownerMatched === true ? "YES" : status.policy.ownerMatched === false ? "NO" : "UNKNOWN"],
+    ["MON balance", nativeBalance],
+    ["USDC balance", tokenBalance],
+  ].forEach(([label, value]) => details.append(element("dt", "", label), element("dd", "", value)));
+  addHash(container, "LIVE POLICY HASH", status.policy.observedHash || status.policy.expectedHash);
+  container.append(checks, details);
+  const link = element("a", "explorer-link", "View wallet on MonadVision ↗");
+  link.href = `${status.network.explorerUrl}/address/${status.wallet.address}`;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  container.append(link, element("p", "policy-mode-note", `Checked ${new Date(status.checkedAt).toLocaleString()} · read-only evidence`));
+
+  const verified = status.status === "VERIFIED";
+  setBadge("live-privy-state", status.status, verified ? "allow" : "deny");
+  byId("runtime-mode").textContent = verified ? "LIVE POLICY VERIFIED" : "LIVE STATUS DEGRADED";
+  byId("runtime-mode").classList.toggle("live", verified);
+  byId("mode-dot").classList.toggle("live", verified);
+  byId("wallet-runtime").textContent = status.capabilities.walletProvisioned ? "WALLET PROVISIONED" : "WALLET NOT PROVISIONED";
+}
+
 function renderPlan(plan) {
   const container = byId("plan-content");
   container.replaceChildren();
@@ -188,7 +239,11 @@ function renderWalletPolicy(walletPolicy) {
   container.replaceChildren();
   container.className = "";
   addHash(container, "WALLET POLICY HASH", walletPolicy.walletPolicyHash);
-  container.append(element("p", "policy-mode-note", "Offline policy manifest only · no Privy wallet or signer is configured."));
+  container.append(element(
+    "p",
+    "policy-mode-note",
+    "This decision trace uses the committed local manifest. Live read-only Privy binding evidence is shown above.",
+  ));
   const list = element("ul", "coverage-list");
   walletPolicy.coverage.forEach((entry) => {
     const item = element("li", "coverage-item");
@@ -197,7 +252,8 @@ function renderWalletPolicy(walletPolicy) {
   });
   container.append(list);
   const kind = walletPolicy.status === "MATCHED" ? "allow" : walletPolicy.status === "DRIFTED" ? "deny" : "approval";
-  setBadge("wallet-policy-state", walletPolicy.status.replace("_", " "), kind);
+  const label = walletPolicy.status === "NOT_CONFIGURED" ? "LOCAL MANIFEST" : walletPolicy.status.replace("_", " ");
+  setBadge("wallet-policy-state", label, kind);
 }
 
 function renderAudit(audit) {
@@ -255,11 +311,13 @@ async function initialize() {
   const pipeline = byId("pipeline");
   ["INTENT", "RISK", "POLICY", "PLAN GUARD", "EXECUTION"].forEach((label) => pipeline.append(element("div", "pipeline-step", label)));
   try {
+    const statusPromise = fetchJson("/api/privy/status").catch(() => null);
     const [health, catalog] = await Promise.all([fetchJson("/api/health"), fetchJson("/api/scenarios")]);
     if (health.walletEnabled || health.signingEnabled || health.broadcastEnabled) throw new Error("Unsafe demo capability state.");
     state.scenarios = catalog.scenarios;
     renderScenarioButtons();
-    byId("health-status").textContent = "LOCAL SERVICE HEALTHY · SAFETY CAPABILITIES DISABLED";
+    renderPrivyStatus(await statusPromise);
+    byId("health-status").textContent = "LOCAL SERVICE HEALTHY · SIGNING AND BROADCAST DISABLED";
   } catch (error) {
     byId("health-status").textContent = "LOCAL SERVICE UNAVAILABLE";
     showError(error instanceof Error ? error.message : "Unable to initialize the local demo.");

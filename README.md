@@ -4,7 +4,7 @@ Secure financial execution and permission layer for AI agents.
 
 > LLM proposes. Deterministic code decides. Wallet policy enforces. Blockchain settles.
 
-当前状态：Phase 4B-2 provisioning 已准备、尚未执行。它要求绑定具体 App/Owner 的确认哈希，只允许幂等创建一个 Privy Policy 和一个零余额 EVM 测试钱包，并在每次创建后立即只读回验。本目录不会提交钱包凭据，也没有交易签名、广播或充值能力；默认保持 `ALICE_GUARD_WALLET_MODE=disabled`。当前 Kuru 测试网 MON/USDC 市场在实测区块没有 ask 流动性，因此 live swap 路径默认阻断。
+当前状态：Phase 4B-2 已完成。专用 Privy Policy 与零余额 EVM 测试钱包已经幂等创建并通过远程回读核验；Phase 4C 提供评委可见的只读状态页和脱敏证据导出。本目录不会提交钱包凭据，也没有交易签名、广播或充值能力；默认保持 `ALICE_GUARD_WALLET_MODE=disabled`。2026-09-15 的最新只读检查仍显示 Kuru 测试网 MON/USDC 市场没有 ask 流动性，因此 live swap 路径继续 fail closed。
 
 ## Hackathon offline demo
 
@@ -24,6 +24,18 @@ pnpm demo:web
 
 然后打开 `http://127.0.0.1:4173`。浏览器只提交预定义场景 ID，服务端负责意图、风险、策略、Plan Guard 和审计链计算；页面不会接收钱包地址、calldata、合约地址或客户端给出的判定结果。
 
+在本机同时展示实时 Privy policy/wallet 绑定与 Monad 余额证明：
+
+```powershell
+pnpm demo:web:live
+```
+
+该模式只调用 Privy GET 接口和 Monad 公共 RPC。浏览器只接收公开 ID、地址、哈希、布尔核验状态和余额；签名、广播、充值能力仍固定关闭。生成可提交给评委的脱敏 JSON 证据：
+
+```powershell
+pnpm evidence:privy
+```
+
 ## Privy Layer-2 policy preview
 
 离线生成确定性的 Privy policy manifest 与规则覆盖矩阵：
@@ -40,7 +52,7 @@ pnpm privy:policy:verify
 
 只读远端核验所需的本地环境变量见 `.env.example`。秘密值不得提交到 Git、传给浏览器或写入日志。
 
-## Privy Phase 4B-1 safe preparation
+## Privy Phase 4B/4C live evidence
 
 先在本机终端运行隐藏输入配置工具。它把秘密写入 Git 已忽略的 `.env.local`，并将钱包模式保持为 `disabled`：
 
@@ -49,7 +61,7 @@ pnpm privy:configure
 pnpm privy:owner:verify
 ```
 
-生成确定性的测试钱包/策略创建计划（不会调用 Privy 写接口）：
+生成确定性的测试钱包/策略计划及只读负向/撤销计划：
 
 ```powershell
 pnpm privy:wallet:plan
@@ -64,9 +76,7 @@ $env:ALICE_GUARD_WALLET_MODE="privy-verify"
 pnpm privy:wallet:verify
 ```
 
-`setup-demo-wallet.ts --apply` 及任何 live 负向测试参数都会 fail closed。Phase 4B-1 到此为止；创建远端 policy/wallet、实际拒绝测试和撤销动作都需要下一阶段的逐项人工确认。完整交接见 `docs/17-phase4b-live-privy.md`。
-
-Phase 4B-2 的远端入口是 `privy:wallet:provision`，但缺少 `--apply`、精确 confirmation hash 或临时 `privy-provision` 模式时都会拒绝执行。不要自行运行；先审查 `privy:wallet:plan` 的最新输出并获得逐次确认。
+Phase 4B-2 的远端入口是 `privy:wallet:provision`；缺少 `--apply`、精确 confirmation hash 或临时 `privy-provision` 模式时都会拒绝执行。当前公开资源为 policy `mx1nnjw8cs4jlh0hzenclu6q`、wallet `gpqzfry67wit2ef7qajovkot`、地址 `0x73180c3581933490E2108036C8F89b0224B87285`。不要重复 provisioning；使用 `demo:web:live` 或 `evidence:privy` 做只读核验。完整交接见 `docs/17-phase4b-live-privy.md` 与 `docs/18-phase4c-live-privy-status.md`。
 
 ## Phase 0 artifacts
 
@@ -87,6 +97,7 @@ Phase 4B-2 的远端入口是 `privy:wallet:provision`，但缺少 `--apply`、�
 - `docs/15-demo-web-ui.md` — 评委 Web Demo、API 信任边界、安全展示 DTO 与演示说明
 - `docs/16-phase4-privy-research.md` — Privy Layer-2 策略映射、已知限制与安全运行模式
 - `docs/17-phase4b-live-privy.md` — Phase 4B-1 安全准备、只读核验、人工工作和下一阶段门槛
+- `docs/18-phase4c-live-privy-status.md` — 评委可见的 Privy/Monad 只读证据、API 边界与运行方式
 - `src/domain/schemas.ts` — 核心 TypeScript + Zod domain schema 设计稿
 
 ## Phase 1 commands
