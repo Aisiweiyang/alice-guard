@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DecisionCapsuleSchema } from "./decision-capsule-shape";
 
 /**
  * Phase 0 domain contract. External data enters the system as `unknown` and must
@@ -382,6 +383,10 @@ export const AuditEventSchema = z
 
 export const AuditRecordSchema = z
   .object({
+    decisionCapsule: DecisionCapsuleSchema.optional(),
+    // Parsed as strict DecisionMaterialSchema by the replay boundary. Kept as
+    // JSON here to avoid a recursive audit -> material -> domain schema graph.
+    decisionMaterialJson: z.string().min(2).max(250_000).optional(),
     auditId: z.string().uuid(),
     request: UserRequestSchema,
     intentValidation: ValidationSummarySchema,

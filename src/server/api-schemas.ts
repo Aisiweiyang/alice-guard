@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ProofPresentationSchema } from "../domain/decision-capsule-shape";
 
 import { Bytes32Schema, EvmAddressSchema, IdentSchema, UintStringSchema } from "../domain/schemas";
 import { DEMO_SCENARIOS } from "../demo/demo-template";
@@ -50,6 +51,7 @@ const TransactionPresentationSchema = z
 
 export const DemoPresentationSchema = z
   .object({
+    proof: ProofPresentationSchema.nullable(),
     scenario: DemoScenarioNameSchema,
     title: z.string().min(1).max(128),
     request: z.string().min(1).max(2_000),

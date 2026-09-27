@@ -1,4 +1,8 @@
 import { randomUUID } from "node:crypto";
+import { z } from "zod";
+import { listAttackCases, runAttackCase } from "../demo/attack-lab";
+import { buildJudgeEvidencePack, verifyJudgeEvidencePack } from "../application/judge-evidence";
+import type { JudgeEvidencePack } from "../domain/judge-evidence";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
@@ -44,6 +48,7 @@ class RequestBodyError extends Error {
 export interface ApiReply {
   status: number;
   body: unknown;
+  downloadName?: "alice-guard-judge-evidence.json";
 }
 
 function safeError(status: number, code: string, message: string): ApiReply {
@@ -57,6 +62,7 @@ function findScenario(name: string): DemoScenario | undefined {
 export class DemoApiService {
   readonly #store: SqliteAuditStore;
   readonly #privyStatusProvider: PrivyJudgeStatusProvider;
+  #judgePack: Promise<JudgeEvidencePack> | undefined;
 
   constructor(store: SqliteAuditStore, privyStatusProvider: PrivyJudgeStatusProvider = new DisabledPrivyJudgeStatusProvider()) {
     this.#store = store;
@@ -92,7 +98,7 @@ export class DemoApiService {
   audits(): ApiReply {
     const records: SafeAuditSummary[] = this.#store.list().map((record) => {
       const plan = record.transactionPlan;
-      const status = plan !== null
+      const status = record.events.some(event => event.type === "capsule.rejected") ? "denied" : plan !== null
         ? record.policyDecision?.decision === "require_approval" ? "requires_approval" : "prepared"
         : record.policyDecision?.decision === "deny" || record.parsedIntent === null ? "denied" : "recorded";
       return SafeAuditSummarySchema.parse({
@@ -133,6 +139,28 @@ export class DemoApiService {
   }
 
   async dispatch(method: string, pathname: string, body?: unknown): Promise<ApiReply> {
+    if (method === "GET" && pathname === "/api/evidence/judge") {
+      try {
+        // One bounded fixture build per server instance, including concurrent requests.
+        // Never export #store: it may contain real user requests in a future mode.
+        this.#judgePack ??= (async () => {
+          const pack = await buildJudgeEvidencePack();
+          if ((await verifyJudgeEvidencePack(pack)).status !== "VERIFIED") throw new Error("JUDGE_SELF_CHECK_FAILED");
+          return pack;
+        })();
+        return {status: 200, body: structuredClone(await this.#judgePack), downloadName: "alice-guard-judge-evidence.json"};
+      } catch {return safeError(503, "JUDGE_EVIDENCE_UNAVAILABLE", "Offline evidence could not be verified. No wallet was reached.");}
+    }
+    if (method === "GET" && pathname === "/api/attack-lab") return {status: 200, body: {
+      mode: "offline-attack-lab", cases: listAttackCases(), capabilities: {signing: false, broadcast: false, funding: false},
+    }};
+    if (method === "POST" && pathname === "/api/attack-lab") {
+      const parsed = z.object({caseId: z.string().min(1).max(128)}).strict().safeParse(body);
+      if (!parsed.success) return safeError(400, "INVALID_ATTACK_REQUEST", "Choose a fixed offline case only.");
+      if (!listAttackCases().some(c => c.id === parsed.data.caseId)) return safeError(400, "UNKNOWN_ATTACK_CASE", "The requested case is unavailable.");
+      try { return {status: 200, body: await runAttackCase(parsed.data.caseId)}; }
+      catch { return safeError(500, "ATTACK_CASE_FAILED", "Offline fixture failed; no wallet was reached."); }
+    }
     if (method === "GET" && pathname === "/api/health") return this.health();
     if (method === "GET" && pathname === "/api/scenarios") return this.scenarios();
     if (method === "GET" && pathname === "/api/audits") return this.audits();
@@ -179,6 +207,7 @@ function sendJson(response: ServerResponse, reply: ApiReply): void {
   securityHeaders(response);
   response.statusCode = reply.status;
   response.setHeader("Content-Type", "application/json; charset=utf-8");
+  if (reply.downloadName) response.setHeader("Content-Disposition", `attachment; filename="${reply.downloadName}"`);
   response.end(`${JSON.stringify(reply.body)}\n`);
 }
 

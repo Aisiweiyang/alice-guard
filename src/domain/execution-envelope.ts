@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { hashCanonical } from "./hash";
+import { computePlanHash } from "../application/build-plan";
 import { Bytes32Schema, IsoDateTimeSchema, TransactionPlanSchema, type TransactionPlan } from "./schemas";
 
 export const ExecutionEnvelopeSchema = z
@@ -93,6 +94,7 @@ export function validateExecutionEnvelope(input: ValidateExecutionEnvelopeInput)
   const reasons: string[] = [];
   if (input.walletPolicyStatus !== "MATCHED") reasons.push("WALLET_POLICY_NOT_MATCHED");
   if (plan.status !== "validated") reasons.push("PLAN_NOT_VALIDATED");
+  if (plan.planHash !== computePlanHash(plan)) reasons.push("PLAN_HASH_MISMATCH");
   if (Date.parse(input.now) >= Date.parse(envelope.expiresAt)) reasons.push("EXECUTION_ENVELOPE_EXPIRED");
   if (Date.parse(envelope.expiresAt) > Date.parse(plan.quoteExpiresAt)) reasons.push("EXECUTION_ENVELOPE_OUTLIVES_QUOTE");
   if (envelope.envelopeHash !== computeExecutionEnvelopeHash(envelope)) reasons.push("EXECUTION_ENVELOPE_HASH_MISMATCH");

@@ -110,7 +110,10 @@ describe("judge demo API trust boundary", () => {
     await service.run({ scenario: "allowed-small-swap" });
     const reply = service.audits();
     expect(reply.status).toBe(200);
-    expect(reply.body).toMatchObject({ chainValid: true, records: [{ status: "prepared", eventCount: 5 }] });
+    expect(reply.body).toMatchObject({ chainValid: true, records: [{ status: "prepared", eventCount: 7 }] });
+    expect(store.list()[0]?.events.map(event => event.type)).toEqual([
+      "request.received", "intent.accepted", "risk.evaluated", "policy.decided", "plan.validated", "capsule.created", "capsule.verified",
+    ]);
     expect(JSON.stringify(reply.body)).not.toContain("audit.sqlite");
   });
 });

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="dark">
-    <title>Alice Guard — Agent Financial Safety Layer</title>
+    <title>Alice Guard 2.0 — Financial Firewall for AI Agents</title>
     <link rel="stylesheet" href="/styles.css">
     <script src="/app.js" defer></script>
   </head>
@@ -16,8 +16,8 @@
         <div class="brand-mark" aria-hidden="true">AG</div>
         <div>
           <p class="eyebrow">MONAD METROPOLIS · TRUST, IDENTITY &amp; AI INFRASTRUCTURE</p>
-          <h1>Alice Guard</h1>
-          <p class="tagline">A programmable financial safety layer between AI reasoning and onchain execution.</p>
+          <h1>Alice Guard <span class="version-label">2.0</span></h1>
+          <p class="tagline">Every proposal carries a decision record. Every boundary can be inspected.</p>
         </div>
       </div>
       <div class="system-state" aria-label="System capabilities">
@@ -26,6 +26,7 @@
         <span id="wallet-runtime">WALLET STATUS CHECKING</span>
         <span>NO SIGNING</span>
         <span>NO BROADCAST</span>
+        <span>NO FUNDING</span>
       </div>
     </header>
 
@@ -36,12 +37,12 @@
           <div><p class="kicker">UNTRUSTED INPUT</p><h2 id="request-heading">Request</h2></div>
         </div>
 
-        <label class="field-label" for="request-preview">Trusted request preview</label>
+        <label class="field-label" for="request-preview">Scenario request preview</label>
         <textarea id="request-preview" readonly aria-describedby="request-help"></textarea>
         <p id="request-help" class="field-help">For this deterministic demo, the browser submits only an allowlisted scenario ID.</p>
 
         <div id="scenario-buttons" class="scenario-list" aria-label="Demo scenarios"></div>
-        <button id="run-button" class="primary-button" type="button">
+        <button id="run-button" class="primary-button" type="button" disabled>
           <span>Run Guard</span><span aria-hidden="true">→</span>
         </button>
 
@@ -49,6 +50,11 @@
           <span class="shield" aria-hidden="true">◇</span>
           <div><strong>Core invariant</strong><p>LLM proposes. Deterministic code decides.</p></div>
         </div>
+        <nav class="section-links" aria-label="Evidence views">
+          <a href="#proof-heading">Inspect Decision Capsule <span aria-hidden="true">↓</span></a>
+          <a href="#attack-heading">Try the Attack Lab <span aria-hidden="true">↓</span></a>
+          <a href="#evidence-heading">Build judge evidence pack <span aria-hidden="true">↓</span></a>
+        </nav>
       </section>
 
       <section class="panel decision-panel" aria-labelledby="decision-heading">
@@ -109,10 +115,55 @@
           <span>DISABLED · NOT ATTEMPTED</span>
         </div>
       </section>
+      <section class="panel proof-panel" aria-labelledby="proof-heading">
+        <div class="panel-heading">
+          <span class="step">04</span>
+          <div><p class="kicker">INSPECT THE DECISION</p><h2 id="proof-heading">Proof View</h2></div>
+          <span id="proof-state" class="micro-badge">WAITING</span>
+        </div>
+        <p class="section-description">Follow the request from its source to the exact plan. A Decision Capsule binds the inputs, policy and decision in one inspectable record.</p>
+        <p class="proof-disclaimer">UNATTESTED · Hashes detect changes relative to the server's expected inputs. They do not authenticate a source, prove economic safety or authorize a transaction.</p>
+        <div id="proof-content" class="empty-state">Run a scenario above to inspect its Decision Capsule and evidence sources.</div>
+      </section>
+
+      <section class="panel attack-panel" aria-labelledby="attack-heading">
+        <div class="panel-heading">
+          <span class="step">05</span>
+          <div><p class="kicker">TEST THE BOUNDARY</p><h2 id="attack-heading">Attack Lab</h2></div>
+          <span id="attack-state" class="micro-badge">LOADING</span>
+        </div>
+        <p class="section-description">Choose a controlled mutation or a legitimate control. The server runs a synthetic offline case through the verifier; no wallet is reached.</p>
+        <div class="attack-layout">
+          <div class="attack-controls">
+            <label class="field-label" for="attack-case">Test case</label>
+            <select id="attack-case" aria-describedby="attack-description" disabled><option>Loading cases…</option></select>
+            <p id="attack-description" class="field-help">Loading the server's allowlisted case catalog.</p>
+            <button id="attack-run" class="primary-button" type="button" disabled><span>Run offline test</span><span aria-hidden="true">→</span></button>
+            <p class="field-help">Only the case ID is submitted. These fixture tests measure implementation checks, not real-world LLM attack resistance.</p>
+          </div>
+          <div id="attack-result" class="attack-result empty-state" role="status" aria-live="polite">Select a case to inspect its attempted change and enforcement boundary.</div>
+        </div>
+      </section>
+      <section class="panel evidence-panel" aria-labelledby="evidence-heading">
+        <div class="panel-heading">
+          <span class="step">06</span>
+          <div><p class="kicker">TAKE THE EVIDENCE WITH YOU</p><h2 id="evidence-heading">Judge Evidence Pack</h2></div>
+          <span id="evidence-state" class="micro-badge">NOT BUILT</span>
+        </div>
+        <p class="section-description">Export three reproducible scenarios, their audit records and one pass of every Attack Lab case. Only bundled synthetic fixtures are included, never your session history or live wallet credentials.</p>
+        <div class="attack-layout">
+          <div class="attack-controls">
+            <button id="evidence-build" class="primary-button" type="button"><span>Build offline evidence pack</span><span aria-hidden="true">→</span></button>
+            <p class="field-help">Single-pass evidence is separate from the 100-repeat benchmark. Nothing is uploaded. A matching hash alone does not authenticate the author.</p>
+            <a id="evidence-download" class="evidence-download" href="/api/evidence/judge" download="alice-guard-judge-evidence.json" hidden>Download fixture JSON ↓</a>
+          </div>
+          <div id="evidence-result" class="attack-result empty-state" role="status" aria-live="polite">Build a pack, then independently replay the downloaded JSON in a trusted local checkout.</div>
+        </div>
+      </section>
     </main>
 
     <footer>
-      <span>Alice Guard · Hackathon safety prototype</span>
+      <span>Alice Guard 2.0 · PROPOSE_ONLY · Hackathon safety prototype</span>
       <span id="health-status">Checking local service…</span>
     </footer>
 

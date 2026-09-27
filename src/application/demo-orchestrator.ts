@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import { createOfflineDecisionProof, type DecisionProof } from "./decision-proof";
 
 import { buildKuruExactInputPlan } from "./build-plan";
 import { validateKuruPlan } from "./plan-guard";
@@ -59,6 +60,7 @@ export type DemoRunResult = {
   policyEvaluation: PolicyEvaluation | null;
   plan: TransactionPlan | null;
   audit: AuditRecord;
+  proof?: DecisionProof;
 };
 
 function auditEvent(
@@ -89,6 +91,7 @@ function appendAudit(
     policy?: PolicyEvaluation | null;
     plan?: TransactionPlan | null;
     events: AuditEvent[];
+    proof?: DecisionProof;
   },
 ): AuditRecord {
   const now = dependencies.clock.now();
@@ -104,6 +107,8 @@ function appendAudit(
     approval: null,
     execution: null,
     events: values.events,
+    ...(values.proof ? {decisionCapsule: values.proof.candidate.capsule,
+      decisionMaterialJson: JSON.stringify(values.proof.trusted)} : {}),
     createdAt: now,
     updatedAt: now,
   });
@@ -193,6 +198,9 @@ export async function runDemoRequest(
   events.push(auditEvent(dependencies, "policy.decided", "policy-engine", policyEvaluation, `Policy decision: ${policyEvaluation.decision.decision}`));
 
   if (policyEvaluation.decision.decision === "deny") {
+    const proof = createOfflineDecisionProof({request, intent, bundle, riskAssessment, policyEvaluation,
+      plan: null, simulations: [], dependencies});
+    events.push(auditEvent(dependencies, "capsule.created", "system", proof.candidate.capsule, "Offline decision committed; unattested, no execution authority"));
     const reasonCodes = policyEvaluation.decision.reasons.map((reason) => reason.code);
     const audit = appendAudit(dependencies, request, {
       intent,
@@ -200,11 +208,13 @@ export async function runDemoRequest(
       evidence: bundle.evidence,
       risk: riskAssessment,
       policy: policyEvaluation,
+      proof,
       events,
     });
     return {
       status: "denied",
       stage: "policy",
+      proof,
       reasonCodes,
       riskAssessment,
       policyEvaluation,
@@ -214,6 +224,7 @@ export async function runDemoRequest(
   }
 
   let plan: TransactionPlan | null = null;
+  let simulations: SimulationResult[] = [];
   let planFailureReasons: string[] = [];
   try {
     const draft = buildKuruExactInputPlan(
@@ -227,7 +238,7 @@ export async function runDemoRequest(
       },
       { nextId: () => dependencies.idGenerator.next(), now: () => dependencies.clock.now() },
     );
-    const simulations = await dependencies.simulator.simulate(draft);
+    simulations = await dependencies.simulator.simulate(draft);
     const guarded = validateKuruPlan({
       plan: draft,
       intent,
@@ -265,23 +276,30 @@ export async function runDemoRequest(
   }
 
   events.push(auditEvent(dependencies, "plan.validated", "plan-guard", { planHash: plan.planHash }, "Transaction plan validated; no signing performed"));
-  const status = policyEvaluation.decision.decision === "require_approval" ? "requires_approval" : "prepared";
+  const proof = createOfflineDecisionProof({request, intent, bundle, riskAssessment, policyEvaluation, plan, simulations, dependencies});
+  events.push(auditEvent(dependencies, "capsule.created", "system", proof.candidate.capsule, "Offline decision committed; unattested, no execution authority"));
+  events.push(auditEvent(dependencies, "capsule.verified", "plan-guard", proof.verification, "Server-pinned proposal checks completed; execution remains disabled"));
+  const proofRejected = proof.verification.reasonCodes.some(code => code !== "APPROVAL_REQUIRED");
+  if (proofRejected) events.push(auditEvent(dependencies, "capsule.rejected", "plan-guard", proof.verification, "Proposal rejected by independent proof checks"));
+  const status = proofRejected ? "denied" : policyEvaluation.decision.decision === "require_approval" ? "requires_approval" : "prepared";
   const audit = appendAudit(dependencies, request, {
     intent,
     intentIssues: [],
     evidence: bundle.evidence,
     risk: riskAssessment,
     policy: policyEvaluation,
-    plan,
+    plan: proofRejected ? null : plan,
+    proof,
     events,
   });
   return {
     status,
     stage: "plan",
-    reasonCodes: policyEvaluation.decision.reasons.map((reason) => reason.code),
+    reasonCodes: [...new Set([...policyEvaluation.decision.reasons.map((reason) => reason.code), ...proof.verification.reasonCodes])],
     riskAssessment,
     policyEvaluation,
-    plan,
+    plan: proofRejected ? null : plan,
     audit,
+    proof,
   };
 }

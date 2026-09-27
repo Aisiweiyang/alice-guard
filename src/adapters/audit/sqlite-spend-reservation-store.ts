@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { z } from "zod";
 
 import {
   ReserveSpendInputSchema,
@@ -13,6 +14,7 @@ import {
 } from "../../application/spend-reservation-store";
 import { fromScaledInteger, toScaledInteger } from "../../domain/canonicalize";
 import { hashCanonical } from "../../domain/hash";
+import { IsoDateTimeSchema } from "../../domain/schemas";
 
 const USD_SCALE = 6;
 
@@ -25,6 +27,7 @@ interface ReservationRow {
   created_at: string;
   updated_at: string;
   expires_at: string;
+  request_hash: string | null;
 }
 interface EventRow {
   record_json: string;
@@ -53,7 +56,7 @@ export class SqliteSpendReservationStore implements SpendReservationStore {
     if (path !== ":memory:") mkdirSync(dirname(resolve(path)), { recursive: true });
     this.#database = new DatabaseSync(path);
     this.#nextId = nextId;
-    this.#database.exec("PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;");
+    this.#database.exec("PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;");
     this.#database.exec(`
       CREATE TABLE IF NOT EXISTS spend_reservations (
         reservation_id TEXT PRIMARY KEY,
@@ -63,7 +66,8 @@ export class SqliteSpendReservationStore implements SpendReservationStore {
         status TEXT NOT NULL CHECK(status IN ('reserved','committed','released','expired','reconciliation_required')),
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
-        expires_at TEXT NOT NULL
+        expires_at TEXT NOT NULL,
+        request_hash TEXT
       ) STRICT;
       CREATE INDEX IF NOT EXISTS spend_reservations_wallet_window
         ON spend_reservations(wallet_address, created_at, status);
@@ -88,38 +92,70 @@ export class SqliteSpendReservationStore implements SpendReservationStore {
         SELECT RAISE(ABORT, 'SPEND_EVENTS_ARE_APPEND_ONLY');
       END;
     `);
+    const columns = this.#database.prepare("PRAGMA table_info(spend_reservations)").all() as { name: string }[];
+    if (!columns.some((column) => column.name === "request_hash")) {
+      // Legacy requests have no complete payload binding; they remain counted but cannot be replayed.
+      this.#database.exec("ALTER TABLE spend_reservations ADD COLUMN request_hash TEXT");
+    }
   }
 
   reserve(unknownInput: ReserveSpendInput): ReserveSpendResult {
     const parsed = ReserveSpendInputSchema.safeParse(unknownInput);
     if (!parsed.success) return { ok: false, reason: "RESERVATION_INPUT_INVALID" };
-    const input = parsed.data;
-    const amount = toScaledInteger(input.amountUsd, USD_SCALE);
-    const transactionLimit = toScaledInteger(input.maxTransactionUsd, USD_SCALE);
-    const rollingLimit = toScaledInteger(input.maxRollingUsd, USD_SCALE);
+    const input = {
+      ...parsed.data,
+      now: new Date(parsed.data.now).toISOString(),
+      expiresAt: new Date(parsed.data.expiresAt).toISOString(),
+    };
+    let amount: bigint;
+    let transactionLimit: bigint;
+    let rollingLimit: bigint;
+    try {
+      amount = toScaledInteger(input.amountUsd, USD_SCALE);
+      transactionLimit = toScaledInteger(input.maxTransactionUsd, USD_SCALE);
+      rollingLimit = toScaledInteger(input.maxRollingUsd, USD_SCALE);
+    } catch {
+      return { ok: false, reason: "RESERVATION_INPUT_INVALID" };
+    }
     if (amount === 0n || amount > transactionLimit) return { ok: false, reason: "TRANSACTION_LIMIT_EXCEEDED" };
+    const requestHash = hashCanonical({
+      requestId: input.requestId,
+      walletAddress: input.walletAddress.toLowerCase(),
+      amountMicrousd: amount.toString(),
+      maxTransactionMicrousd: transactionLimit.toString(),
+      maxRollingMicrousd: rollingLimit.toString(),
+      windowSeconds: input.windowSeconds,
+      expiresAt: input.expiresAt,
+    });
 
     this.#database.exec("BEGIN IMMEDIATE");
     try {
+      const latest = this.#database.prepare(
+        "SELECT updated_at FROM spend_reservations WHERE lower(wallet_address) = lower(?) ORDER BY julianday(updated_at) DESC LIMIT 1",
+      ).get(input.walletAddress) as { updated_at: string } | undefined;
+      if (latest && Date.parse(input.now) < Date.parse(latest.updated_at)) {
+        this.#database.exec("ROLLBACK");
+        return { ok: false, reason: "RESERVATION_INPUT_INVALID" };
+      }
+      this.#expireReservedRows(input.walletAddress, input.now);
       const existing = this.#database
         .prepare("SELECT * FROM spend_reservations WHERE request_id = ?")
         .get(input.requestId) as ReservationRow | undefined;
       if (existing) {
         const reservation = parseRow(existing);
         this.#database.exec("COMMIT");
-        return reservation.walletAddress.toLowerCase() === input.walletAddress.toLowerCase() && reservation.amountUsd === input.amountUsd
-          ? { ok: true, reservation, idempotentReplay: true }
-          : { ok: false, reason: "REQUEST_RESERVATION_CONFLICT" };
+        if (existing.request_hash !== requestHash) return { ok: false, reason: "REQUEST_RESERVATION_CONFLICT" };
+        if (reservation.status !== "reserved") return { ok: false, reason: "RESERVATION_NOT_ACTIVE" };
+        return { ok: true, reservation, idempotentReplay: true };
       }
 
-      this.#expireReservedRows(input.walletAddress, input.now);
       const windowStart = new Date(Date.parse(input.now) - input.windowSeconds * 1_000).toISOString();
       const active = this.#database
         .prepare(`
           SELECT amount_microusd FROM spend_reservations
           WHERE lower(wallet_address) = lower(?)
-            AND created_at >= ?
-            AND status IN ('reserved','committed','reconciliation_required')
+            AND (status IN ('reserved','reconciliation_required')
+              OR (status = 'committed' AND julianday(updated_at) >= julianday(?)))
         `)
         .all(input.walletAddress, windowStart) as unknown as { amount_microusd: string }[];
       const alreadyCounted = active.reduce((total, row) => total + BigInt(row.amount_microusd), 0n);
@@ -132,7 +168,7 @@ export class SqliteSpendReservationStore implements SpendReservationStore {
         reservationId: this.#nextId(),
         requestId: input.requestId,
         walletAddress: input.walletAddress,
-        amountUsd: input.amountUsd,
+        amountUsd: fromScaledInteger(amount, USD_SCALE),
         status: "reserved",
         createdAt: input.now,
         updatedAt: input.now,
@@ -140,8 +176,8 @@ export class SqliteSpendReservationStore implements SpendReservationStore {
       });
       this.#database.prepare(`
         INSERT INTO spend_reservations (
-          reservation_id, request_id, wallet_address, amount_microusd, status, created_at, updated_at, expires_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          reservation_id, request_id, wallet_address, amount_microusd, status, created_at, updated_at, expires_at, request_hash
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         reservation.reservationId,
         reservation.requestId,
@@ -151,6 +187,7 @@ export class SqliteSpendReservationStore implements SpendReservationStore {
         reservation.createdAt,
         reservation.updatedAt,
         reservation.expiresAt,
+        requestHash,
       );
       this.#appendEvent(reservation, "reserved", "Spend reserved before wallet authorization.");
       this.#database.exec("COMMIT");
@@ -219,7 +256,7 @@ export class SqliteSpendReservationStore implements SpendReservationStore {
   #expireReservedRows(walletAddress: string, now: string): void {
     const rows = this.#database.prepare(`
       SELECT * FROM spend_reservations
-      WHERE lower(wallet_address) = lower(?) AND status = 'reserved' AND expires_at <= ?
+      WHERE lower(wallet_address) = lower(?) AND status = 'reserved' AND julianday(expires_at) <= julianday(?)
     `).all(walletAddress, now) as unknown as ReservationRow[];
     for (const row of rows) {
       this.#database.prepare("UPDATE spend_reservations SET status = 'expired', updated_at = ? WHERE reservation_id = ?")
@@ -229,13 +266,18 @@ export class SqliteSpendReservationStore implements SpendReservationStore {
   }
 
   #transition(reservationId: string, now: string, transition: Transition): SpendReservation {
-    if (!zIso(now) || !/^[0-9a-f-]{36}$/i.test(reservationId)) throw new Error("RESERVATION_TRANSITION_INPUT_INVALID");
+    if (!IsoDateTimeSchema.safeParse(now).success || !z.string().uuid().safeParse(reservationId).success) {
+      throw new Error("RESERVATION_TRANSITION_INPUT_INVALID");
+    }
+    now = new Date(now).toISOString();
     this.#database.exec("BEGIN IMMEDIATE");
     try {
       const row = this.#database.prepare("SELECT * FROM spend_reservations WHERE reservation_id = ?").get(reservationId) as ReservationRow | undefined;
       if (!row) throw new Error("RESERVATION_NOT_FOUND");
       if (row.status !== "reserved") throw new Error(`RESERVATION_TRANSITION_DENIED:${row.status}`);
+      if (Date.parse(now) < Date.parse(row.updated_at)) throw new Error("RESERVATION_TIMESTAMP_REVERSED");
       if (transition === "expire" && Date.parse(now) < Date.parse(row.expires_at)) throw new Error("RESERVATION_NOT_EXPIRED");
+      if (transition === "commit" && Date.parse(now) >= Date.parse(row.expires_at)) throw new Error("RESERVATION_EXPIRED");
       const nextStatus: SpendReservation["status"] = transition === "commit"
         ? "committed"
         : transition === "release"
@@ -285,8 +327,4 @@ export class SqliteSpendReservationStore implements SpendReservationStore {
       JSON.stringify(record),
     );
   }
-}
-
-function zIso(value: string): boolean {
-  return typeof value === "string" && Number.isFinite(Date.parse(value)) && /(?:Z|[+-][0-9]{2}:[0-9]{2})$/.test(value);
 }

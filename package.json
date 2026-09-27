@@ -11,6 +11,8 @@
     "demo:web": "tsx scripts/serve-demo.ts",
     "demo:web:live": "node --env-file=.env.local --import tsx scripts/serve-demo.ts --privy-status",
     "evidence:privy": "node --env-file=.env.local --import tsx scripts/export-privy-evidence.ts",
+    "evidence:judge": "tsx scripts/export-judge-evidence.ts",
+    "evidence:judge:verify": "tsx scripts/verify-judge-evidence.ts",
     "privy:policy:render": "tsx scripts/render-privy-policy.ts",
     "privy:policy:verify": "node --env-file-if-exists=.env.local --import tsx scripts/verify-privy-policy.ts",
     "privy:configure": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/configure-privy-local.ps1",
@@ -21,6 +23,7 @@
     "privy:wallet:denials": "tsx scripts/test-wallet-policy-denials.ts --dry-run",
     "privy:wallet:revoke:plan": "node --env-file-if-exists=.env.local --import tsx scripts/revoke-demo-wallet.ts --dry-run",
     "test": "vitest run",
+    "test:attacks": "tsx scripts/run-attack-lab.ts",
     "test:watch": "vitest",
     "verify:testnet": "vitest run --config vitest.live.config.ts"
   },

@@ -46,7 +46,7 @@ export type ReserveSpendInput = z.infer<typeof ReserveSpendInputSchema>;
 
 export type ReserveSpendResult =
   | { ok: true; reservation: SpendReservation; idempotentReplay: boolean }
-  | { ok: false; reason: "TRANSACTION_LIMIT_EXCEEDED" | "ROLLING_LIMIT_EXCEEDED" | "RESERVATION_INPUT_INVALID" | "REQUEST_RESERVATION_CONFLICT" };
+  | { ok: false; reason: "TRANSACTION_LIMIT_EXCEEDED" | "ROLLING_LIMIT_EXCEEDED" | "RESERVATION_INPUT_INVALID" | "REQUEST_RESERVATION_CONFLICT" | "RESERVATION_NOT_ACTIVE" };
 
 export interface SpendReservationStore {
   reserve(input: ReserveSpendInput): ReserveSpendResult;

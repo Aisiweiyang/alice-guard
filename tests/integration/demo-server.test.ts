@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { SqliteAuditStore } from "../../src/adapters/audit/sqlite-audit-store";
 import { PrivyJudgeStatusSchema } from "../../src/application/privy-judge-status";
 import { DemoPresentationSchema } from "../../src/server/api-schemas";
+import { JudgeEvidencePackSchema } from "../../src/domain/judge-evidence";
 import { createDemoHttpServer, DemoApiService, listenOnLocalhost } from "../../src/server/demo-server";
 
 describe("local judge demo server", () => {
@@ -99,5 +100,22 @@ describe("local judge demo server", () => {
     expect(source).not.toMatch(/\.innerHTML\s*=/u);
     expect(source).not.toContain("eval(");
     expect(source).not.toContain("document.write");
+  });
+
+  it("downloads deterministic fixtures without exporting the active audit store", async () => {
+    await fetch(`${origin}/api/demo`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({scenario: "allowed-small-swap"})});
+    const userRecord = store.list()[0]!;
+    const responses = await Promise.all([fetch(`${origin}/api/evidence/judge`), fetch(`${origin}/api/evidence/judge`)]);
+    expect(responses[0]!.status).toBe(200);
+    expect(responses[0]!.headers.get("content-disposition")).toBe('attachment; filename="alice-guard-judge-evidence.json"');
+    expect(responses[0]!.headers.get("x-content-type-options")).toBe("nosniff");
+    expect(responses[0]!.headers.get("cache-control")).toBe("no-store");
+    const pack = JudgeEvidencePackSchema.parse(await responses[0]!.json());
+    expect(pack).toEqual(await responses[1]!.json());
+    expect(pack.metrics).toMatchObject({caseCount: 51, repeatCount: 1, passedCaseCount: 51});
+    expect(pack.scenarios.some(s => s.audit.request.requestId === userRecord.request.requestId)).toBe(false);
+    expect(store.list()).toHaveLength(1);
+    const unsupported = await fetch(`${origin}/api/evidence/judge`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({path: ".env.local"})});
+    expect(unsupported.status).toBe(404);
   });
 });

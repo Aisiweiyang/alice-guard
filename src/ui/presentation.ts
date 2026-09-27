@@ -41,6 +41,11 @@ export function toDemoPresentation(
   const intentAccepted = result.audit.parsedIntent !== null;
   const policy = result.policyEvaluation;
   return DemoPresentationSchema.parse({
+    proof: result.proof ? {
+      capsule: result.proof.candidate.capsule, verification: result.proof.verification,
+      provenance: result.proof.candidate.material.provenance,
+      limitation: `UNATTESTED offline fixture, evaluated at fixed demo time ${result.proof.options.now}, not the current clock. Hashes commit to data; they do not authenticate its source. Checks are relative to server-pinned context. Manifest coverage is not a verified Privy binding. No signing, broadcast, or execution authorization.`,
+    } : null,
     scenario: scenario.name,
     title: scenario.title,
     request: scenario.request.text,
