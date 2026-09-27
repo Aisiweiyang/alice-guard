@@ -14,7 +14,7 @@ Secure financial execution and permission layer for AI agents.
 
 新增评委证据包：网页第 06 区域可下载，或运行 `npm.cmd run evidence:judge`。随后用 `npm.cmd run evidence:judge:verify -- "导出的 JSON 路径"` 在单独进程复核。证据包只包含固定离线 fixture（三场景及单遍 51 例），不导出当前会话历史；复核会重新构建本地参考结果，不只检查包内自带哈希。
 
-比赛材料：[三分钟演示流程](docs/20-judge-demo-runbook.md)、[威胁模型](docs/21-v2-threat-model.md)、[提交准备与未核实规则](docs/22-submission-readiness.md)、[可复制的提交文案与视频镜头表](docs/23-submission-kit.md)。签名、广播和充值仍关闭。
+比赛材料：[三分钟演示流程](docs/20-judge-demo-runbook.md)、[威胁模型](docs/21-v2-threat-model.md)、[提交准备与未核实规则](docs/22-submission-readiness.md)、[可复制的提交文案与视频镜头表](docs/23-submission-kit.md)、[公开演示部署交接](docs/24-public-demo-deploy.md)。签名、广播和充值仍关闭。
 
 命令行运行三个确定性比赛场景：
 

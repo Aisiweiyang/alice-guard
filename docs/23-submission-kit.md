@@ -8,8 +8,8 @@
 - 主赛道：**Trust, Identity & AI Infrastructure**（提交前在后台核对）
 - 可选赞助奖：**Privy**（完整资格要求尚未独立核实）
 - 标签：AI agents、financial safety、verifiable decisions、Monad、Privy
-- 仓库：`https://github.com/Aisiweiyang/alice-guard`（新版推送后再作为最终链接）
-- 在线 Demo：待部署；本机 `127.0.0.1` 地址不能填写为公开 Demo
+- 仓库：`https://github.com/Aisiweiyang/alice-guard/tree/phase-4b-live-privy`（提交前核对最终提交）
+- 在线 Demo：Render Blueprint 已准备，待账号持有人创建服务并填入公开 URL；本机 `127.0.0.1` 地址不能填写为公开 Demo
 - 视频：待录制
 
 ## 一句话介绍
@@ -58,7 +58,7 @@ npm.cmd run demo:web
 ## 需要你本人完成
 
 1. 登录比赛后台，核对提交字段、项目复用规则、Privy bounty 细则与带时区的截止时间；将非敏感截图或文字交给我，我可以据此压缩文案。
-2. 选择并登录托管平台，批准公开 Demo 部署所需的账号操作。仓库当前只提供本机服务；公开部署的域名尚不存在。
+2. 登录 Render 并按 [部署交接](24-public-demo-deploy.md)授权仓库、创建免费 Web 服务；公开部署的域名尚不存在。
 3. 录制或确认演示视频，上传后提供链接。
 4. 最终检查所填赛道与材料，在主办方页面提交。
 

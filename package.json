@@ -9,6 +9,7 @@
     "check": "tsc --noEmit",
     "demo": "tsx scripts/run-demo.ts",
     "demo:web": "tsx scripts/serve-demo.ts",
+    "demo:web:public": "tsx scripts/serve-public-demo.ts",
     "demo:web:live": "node --env-file=.env.local --import tsx scripts/serve-demo.ts --privy-status",
     "evidence:privy": "node --env-file=.env.local --import tsx scripts/export-privy-evidence.ts",
     "evidence:judge": "tsx scripts/export-judge-evidence.ts",

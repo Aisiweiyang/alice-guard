@@ -1,0 +1,16 @@
+services:
+  - type: web
+    runtime: node
+    name: alice-guard-judge-demo
+    branch: phase-4b-live-privy
+    plan: free
+    region: singapore
+    buildCommand: npx --yes pnpm@11.19.0 install --frozen-lockfile --prod=false
+    startCommand: npm run demo:web:public
+    healthCheckPath: /api/health
+    autoDeployTrigger: off
+    envVars:
+      - key: NODE_VERSION
+        value: 24.19.0
+      - key: ALICE_GUARD_WALLET_MODE
+        value: disabled

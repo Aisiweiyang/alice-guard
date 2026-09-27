@@ -539,9 +539,9 @@ async function initialize() {
     renderScenarioButtons();
     void loadAttackLab();
     renderPrivyStatus(await statusPromise);
-    byId("health-status").textContent = "LOCAL SERVICE HEALTHY · SIGNING AND BROADCAST DISABLED";
+    byId("health-status").textContent = "DEMO SERVICE HEALTHY · SIGNING AND BROADCAST DISABLED";
   } catch (error) {
-    byId("health-status").textContent = "LOCAL SERVICE UNAVAILABLE";
+    byId("health-status").textContent = "DEMO SERVICE UNAVAILABLE";
     showError(error instanceof Error ? error.message : "Unable to initialize the local demo.");
   }
 }
