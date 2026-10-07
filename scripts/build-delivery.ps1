@@ -73,7 +73,7 @@ try {
     & git archive --format=zip ('--output=' + $guardSourceZip) HEAD
     if ($LASTEXITCODE -ne 0) { throw 'Source archive failed.' }
     Copy-Item -LiteralPath $guardEvidencePath -Destination (Join-Path $guardFolder 'judge-evidence.json')
-    $guardAttack | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath (Join-Path $guardFolder 'attack-regression.json') -Encoding utf8
+    [IO.File]::WriteAllText((Join-Path $guardFolder 'attack-regression.json'), ($guardAttack | ConvertTo-Json -Depth 30), [Text.UTF8Encoding]::new($false))
     $guardValidation = [ordered]@{
         schemaVersion = 'alice-guard.delivery.v1'
         sourceCommit = $guardCommit
@@ -90,7 +90,7 @@ try {
         publicDeploymentVerified = $false
         contestSubmissionVerified = $false
     }
-    $guardValidation | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $guardFolder 'VALIDATION.json') -Encoding utf8
+    [IO.File]::WriteAllText((Join-Path $guardFolder 'VALIDATION.json'), ($guardValidation | ConvertTo-Json -Depth 12), [Text.UTF8Encoding]::new($false))
     @"
 Alice Guard offline competition delivery
 Source commit: $guardCommit
@@ -101,7 +101,7 @@ Source commit: $guardCommit
 4. Run: npm.cmd run demo:web
 5. Open http://127.0.0.1:4187. Windows users can also double-click start-demo.cmd.
 
-See source/docs/26-delivery-and-updates.md in the extracted source for updates and rollback.
+See docs/26-delivery-and-updates.md in the extracted source folder for updates and rollback.
 The source archive contains committed files only. Credentials, databases, session history and node_modules are excluded.
 All evidence is synthetic/offline and UNATTESTED. No signing, broadcast, funding or real trade is performed.
 SHA256SUMS.txt detects file changes; it is not a publisher signature or security certification.

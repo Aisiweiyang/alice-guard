@@ -7,13 +7,14 @@
 - 修复项目迁移后的本地依赖链接；这属于安装环境，不把 `node_modules` 放进源码包。
 - 本地默认端口改为 `4187`，避免浏览器与 Growth Lab 的 `4173` 页面混淆。
 - 新增 Windows 双击入口 `start-demo.cmd`。
+- 修正 pnpm 中 esbuild 的构建许可占位值，仅允许锁定的 `esbuild@0.28.2` 安装脚本，保证新目录安装正常退出。配置依据为 [pnpm 构建设置文档](https://pnpm.io/settings/build#allowbuilds)。
 - 保留全部测试断言，限制测试并发，并为完整证据重建和 5,100 次重放留出适当时间。
 - 新增交付构建脚本，使用稳定的 Git 提交重新运行检查、测试、攻击回归、证据导出和独立复核。
 - 原有 Render 公开入口与钱包执行边界保持原设计。没有新增签名、广播或真实交易。
 
 ## 生成交付包
 
-在正常 Windows PowerShell 中，从已提交、工作区干净的版本运行：
+在正常 Windows PowerShell 中，从通过 Git 克隆、已提交且工作区干净的版本运行（ZIP 副本不含 `.git`，不能直接重新构建交付或执行 `git pull`）：
 
 ```powershell
 cd "C:\Users\Asus\Desktop\Alice\Alice Guard"
@@ -37,6 +38,8 @@ npm.cmd run demo:web
 打开 `http://127.0.0.1:4187`，实际页面标题应为 `Alice Guard 2.0 — Financial Firewall for AI Agents`。不要复制另一目录的 `node_modules`；其中的 Windows junction 可能仍指向旧路径。证据复核需使用包内匹配的源码提交。
 
 ## 更新已有本地副本
+
+ZIP 副本的更新方式是把新包解压到新目录并重新安装依赖；保留旧目录即可回看旧版。下列 Git 命令仅用于通过 Git 克隆的仓库副本。
 
 先关闭这个副本自己启动的演示终端，查看 `git status --short` 并保存自己的修改。工作区干净时：
 
