@@ -4,7 +4,11 @@ Secure financial execution and permission layer for AI agents.
 
 > LLM proposes. Deterministic code decides. Wallet policy enforces. Blockchain settles.
 
-当前状态：Phase 4B-2 已完成。专用 Privy Policy 与零余额 EVM 测试钱包已经幂等创建并通过远程回读核验；Phase 4C 提供评委可见的只读状态页和脱敏证据导出。本目录不会提交钱包凭据，也没有交易签名、广播或充值能力；默认保持 `ALICE_GUARD_WALLET_MODE=disabled`。2026-09-15 的最新只读检查仍显示 Kuru 测试网 MON/USDC 市场没有 ask 流动性，因此 live swap 路径继续 fail closed。
+2026-10-07：项目已迁移到 `C:\Users\Asus\Desktop\Alice\Alice Guard`，本地依赖链接已修复。比赛收尾进度、验证记录和待提交材料见 [Metropolis 收尾清单](docs/25-metropolis-final-checklist.md)。可双击根目录 `start-demo.cmd` 启动离线演示，然后打开终端显示的本地地址。
+
+交付 ZIP、匹配提交的证据核验、本地更新与 Render 手动部署／回退步骤见 [交付与更新说明](docs/26-delivery-and-updates.md)。从工作区干净的已提交版本运行 `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-delivery.ps1` 可重建经过完整离线验证的交付包。
+
+历史完成状态：Phase 4B-2 已创建专用 Privy Policy 与零余额 EVM 测试钱包，并通过当时的远程回读核验；Phase 4C 提供评委可见的只读状态页和脱敏证据导出。本目录不会提交钱包凭据，也没有交易签名、广播或充值能力；默认保持 `ALICE_GUARD_WALLET_MODE=disabled`。2026-09-15 的只读检查显示 Kuru 测试网 MON/USDC 市场没有 ask 流动性；该记录不是当前链上状态，本轮没有重新核验远端资源。
 
 ## Hackathon offline demo
 
@@ -30,7 +34,7 @@ npm.cmd run demo
 npm.cmd run demo:web
 ```
 
-然后打开 `http://127.0.0.1:4173`。浏览器只提交预定义场景 ID，服务端负责意图、风险、策略、Plan Guard 和审计链计算；页面不会接收钱包地址、calldata、合约地址或客户端给出的判定结果。
+然后打开 `http://127.0.0.1:4187`。浏览器只提交预定义场景 ID，服务端负责意图、风险、策略、Plan Guard 和审计链计算；页面不会接收钱包地址、calldata、合约地址或客户端给出的判定结果。
 
 在本机同时展示实时 Privy policy/wallet 绑定与 Monad 余额证明：
 

@@ -1,6 +1,6 @@
 # 公开演示部署交接（Render Blueprint）
 
-更新日期：2026-09-27。仓库根目录的 `render.yaml` 已准备离线 Web 服务。**目前尚未在 Render 创建服务，也没有公开 URL。** 该部署只用于评委体验固定场景、Proof View、Attack Lab 和 Judge Evidence Pack。
+更新日期：2026-10-07。仓库根目录的 `render.yaml` 已准备离线 Web 服务。**本机尚无已核验的公开 URL。** 该部署只用于评委体验固定场景、Proof View、Attack Lab 和 Judge Evidence Pack。后续发布、指定提交更新与回退见 [交付与更新说明](26-delivery-and-updates.md)。
 
 ## 已在代码中固定的边界
 

@@ -51,5 +51,5 @@ describe("offline adversarial attack lab", () => {
     expect(summary.deterministicReplayMatchRate).toBe(1);
     expect(summary.denominatorDefinitions.attackBlockedRate).toContain("does not measure unseen attacks");
     expect(summary.denominatorDefinitions.unsafeExecutionCount).toContain("structurally zero");
-  }, 120_000);
+  }, 600_000); // 5,100 complete fixture evaluations; keep every replay assertion.
 });

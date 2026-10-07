@@ -13,11 +13,11 @@ Alice Guard 把 AI 的金融提案转换为可复核的决策记录，在服务�
 在项目目录打开 PowerShell：
 
 ```powershell
-cd "C:\Users\Asus\Desktop\Alice Guard"
+cd "C:\Users\Asus\Desktop\Alice\Alice Guard"
 npm.cmd run demo:web
 ```
 
-打开终端输出的本地 URL，默认是 `http://127.0.0.1:4173`。端口被占用时可让操作系统选择空闲端口，再使用新输出的 URL：
+打开终端输出的本地 URL，默认是 `http://127.0.0.1:4187`。端口被占用时可让操作系统选择空闲端口，再使用新输出的 URL：
 
 ```powershell
 $env:ALICE_GUARD_DEMO_PORT = "0"

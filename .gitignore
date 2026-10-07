@@ -3,6 +3,7 @@ dist/
 coverage/
 .next/
 demo-output/
+delivery/
 
 .env
 .env.*

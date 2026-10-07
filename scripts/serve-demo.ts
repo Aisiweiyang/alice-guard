@@ -21,7 +21,7 @@ const privyStatusProvider = livePrivyStatusEnabled
   ? createLivePrivyJudgeStatusProvider(readPrivyLiveEnvironment(process.env))
   : new DisabledPrivyJudgeStatusProvider();
 const server = createDemoHttpServer(new DemoApiService(store, privyStatusProvider));
-const requestedPort = Number(process.env["ALICE_GUARD_DEMO_PORT"] ?? "4173");
+const requestedPort = Number(process.env["ALICE_GUARD_DEMO_PORT"] ?? "4187");
 if (!Number.isInteger(requestedPort) || requestedPort < 0 || requestedPort > 65_535) {
   throw new Error("INVALID_DEMO_PORT");
 }

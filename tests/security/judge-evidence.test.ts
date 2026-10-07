@@ -168,7 +168,7 @@ describe("distributable judge evidence trust boundary", () => {
     expect(fetchStub).not.toHaveBeenCalled();
     expect(JSON.stringify({ built, result })).not.toContain(CANARY);
     expect(JSON.stringify(built)).not.toMatch(/C:\\\\Users|"appSecret"|"privateKey"|"databasePath"/);
-  });
+  }, 20_000); // Rebuild and independent reference verification both run all 51 cases.
 
   it("rejects malformed material snapshots without echoing their content", async () => {
     const pack = fresh();

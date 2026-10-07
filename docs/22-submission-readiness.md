@@ -29,7 +29,7 @@
 网页第 06 区域 `Judge Evidence Pack` 可生成并下载固定 fixture JSON；它与刚点击的网页会话审计分开。下载不上传任何内容。
 
 ```powershell
-cd "C:\Users\Asus\Desktop\Alice Guard"
+cd "C:\Users\Asus\Desktop\Alice\Alice Guard"
 npm.cmd run evidence:judge
 npm.cmd run evidence:judge:verify -- "实际输出的 judge-evidence.json 路径"
 ```

@@ -51,7 +51,7 @@ Capsule 同时承诺请求、意图、证据根、风险配置、完整应用策
 这些是合成结构化输入回归测试，不是对真实 LLM 或未知提示注入的防护率评测；metadata/tool-output 用例只证明未知字段或来源绑定边界，没有实现通用注入检测模型。
 
 ```powershell
-cd "C:\Users\Asus\Desktop\Alice Guard"
+cd "C:\Users\Asus\Desktop\Alice\Alice Guard"
 npm.cmd run check
 npm.cmd test
 npm.cmd run test:attacks
