@@ -1,5 +1,7 @@
 # Phase 4B: Privy provisioning history and live boundary
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 基准日期：2026-09-14（Asia/Shanghai）。
 
 > 状态更新（2026-09-15）：Phase 4B-2 已经在精确 confirmation hash 门禁下完成。创建的公开资源为 policy `mx1nnjw8cs4jlh0hzenclu6q`、wallet `gpqzfry67wit2ef7qajovkot`、地址 `0x73180c3581933490E2108036C8F89b0224B87285`；owner `vr277t5pq4j4wvvo7oxuafye` 与 policy hash `0x77b1ce7652daf32b89dea09c4644d0b31885cd8aad140f8e1c341b81c52c72dc` 已远程回读匹配。Monad 测试网 MON 与 Kuru USDC 余额均为零。以下 Phase 4B-1 内容保留为历史安全门说明；当前只读展示见 `18-phase4c-live-privy-status.md`。

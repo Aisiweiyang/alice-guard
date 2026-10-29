@@ -1,6 +1,8 @@
 # Metropolis 比赛收尾清单
 
-更新：2026-10-07（Asia/Shanghai）。当前项目路径：`C:\Users\Asus\Desktop\Alice\Alice Guard`。
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
+更新：2026-10-07（Asia/Shanghai）。示例项目目录：`alice-guard`。
 
 ## 当前交付边界
 
@@ -35,7 +37,7 @@ Windows 沙箱内的原生编译器类型解析、本机网络和临时文件共
 双击根目录 `start-demo.cmd`，保持终端打开，并访问显示的本机地址，默认 `http://127.0.0.1:4187`。它不加载 `.env.local`。也可在 PowerShell 执行：
 
 ```powershell
-cd "C:\Users\Asus\Desktop\Alice\Alice Guard"
+cd "alice-guard"
 npm.cmd run demo:web
 ```
 

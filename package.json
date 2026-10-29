@@ -26,20 +26,33 @@
     "test": "vitest run",
     "test:attacks": "tsx scripts/run-attack-lab.ts",
     "test:watch": "vitest",
-    "verify:testnet": "vitest run --config vitest.live.config.ts"
+    "verify:testnet": "vitest run --config vitest.live.config.ts",
+    "start": "tsx scripts/serve-demo.ts",
+    "check:public": "node scripts/check-public-tree.mjs",
+    "smoke:evidence": "node scripts/smoke-evidence.mjs"
   },
   "engines": {
-    "node": ">=22.5"
+    "node": ">=24.19.0"
   },
   "dependencies": {
     "@privy-io/node": "0.34.0",
     "viem": "^2.40.0",
-    "zod": "^4.6.2"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@types/node": "^22.20.2",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.0"
-  }
+    "vitest": "^5.0.3"
+  },
+  "license": "MIT",
+  "author": "Aisiweiyang",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Aisiweiyang/alice-guard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Aisiweiyang/alice-guard/issues"
+  },
+  "homepage": "https://github.com/Aisiweiyang/alice-guard#readme"
 }

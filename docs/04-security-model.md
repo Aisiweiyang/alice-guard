@@ -1,5 +1,7 @@
 # Security Model
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 ## Security invariant
 
 No transaction may reach a signer unless a validated high-level intent, fresh evidence, deterministic risk assessment, deterministic policy decision, validated transaction plan, and any required human approval all refer to the same canonical request and plan hashes.

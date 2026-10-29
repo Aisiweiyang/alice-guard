@@ -1,5 +1,7 @@
 # Phase 4C — Judge-visible Privy live evidence
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 Verification date: **2026-09-15, Asia/Shanghai**.
 
 ## Outcome

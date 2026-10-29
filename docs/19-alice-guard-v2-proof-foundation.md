@@ -1,5 +1,7 @@
 # Alice Guard 2.0 — 可复核决策与离线攻击实验
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 实施日期：2026-09-18。阶段 A–D 的本地基础版本；不是生产执行器，不声称已经满足比赛所有要求。
 
 ## 定位与边界
@@ -51,7 +53,7 @@ Capsule 同时承诺请求、意图、证据根、风险配置、完整应用策
 这些是合成结构化输入回归测试，不是对真实 LLM 或未知提示注入的防护率评测；metadata/tool-output 用例只证明未知字段或来源绑定边界，没有实现通用注入检测模型。
 
 ```powershell
-cd "C:\Users\Asus\Desktop\Alice\Alice Guard"
+cd "alice-guard"
 npm.cmd run check
 npm.cmd test
 npm.cmd run test:attacks

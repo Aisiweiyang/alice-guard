@@ -15,3 +15,11 @@ data/privy-demo-state.json
 data/privy-demo-state.json.*.tmp
 data/privy-provision.lock
 *.log
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.sqlite3-*
+*.db
+*.db-*
+output/playwright/
+.playwright-cli/

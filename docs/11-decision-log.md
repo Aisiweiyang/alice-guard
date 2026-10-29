@@ -1,5 +1,7 @@
 # Decision Log
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 The project owner delegated technical defaults because the earlier choices were too specialized to evaluate comfortably. These decisions are reversible until they cross the stated safety gate. No immediate user decision is required for Phase 1.
 
 ## D-001 — Execution environment

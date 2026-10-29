@@ -1,5 +1,7 @@
 # Technology and Repository Proposal
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 ## Decision
 
 Use a single TypeScript repository and modular monolith. A package-based monorepo adds release/configuration overhead without improving the one-developer MVP. Security boundaries are expressed as module interfaces and dependency direction, not as network services.

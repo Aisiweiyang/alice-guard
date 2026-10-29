@@ -92,10 +92,10 @@ try {
     }
     [IO.File]::WriteAllText((Join-Path $guardFolder 'VALIDATION.json'), ($guardValidation | ConvertTo-Json -Depth 12), [Text.UTF8Encoding]::new($false))
     @"
-Alice Guard offline competition delivery
+Alice Guard offline source delivery
 Source commit: $guardCommit
 
-1. Extract source.zip into a new folder. Install Node.js 22.5+ (validated with $($guardValidation.nodeVersion)).
+1. Extract source.zip into a new folder. Install Node.js 24.19+ (validated with $($guardValidation.nodeVersion)).
 2. Run: npx.cmd -y pnpm@11.19.0 install --frozen-lockfile
 3. Run: npm.cmd run evidence:judge:verify -- "<absolute path to judge-evidence.json>"
 4. Run: npm.cmd run demo:web

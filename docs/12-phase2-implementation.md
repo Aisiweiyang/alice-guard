@@ -1,5 +1,7 @@
 # Phase 2 Implementation: Agent Intent Parser
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 Status: **complete locally; live provider credentials intentionally not configured**.
 
 ## Implemented boundary

@@ -1,5 +1,7 @@
 # Alice Guard 2.0 — 提交文案与交接包
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 更新日期：2026-09-27。此文案供比赛提交页和演示视频使用；正式字段、字数限制、截止时区以及 Privy bounty 条件以登录后的主办方页面为准。
 
 ## 建议提交定位
@@ -30,7 +32,7 @@ Privy is used beyond login: the repo defines wallet policy constraints, creates 
 
 ## 评委可复核的操作
 
-在可信仓库版本、Node.js 22.5+ 与已安装依赖的本地环境中：
+在可信仓库版本、Node.js 24.19+ 与已安装依赖的本地环境中：
 
 ```powershell
 npm.cmd run check

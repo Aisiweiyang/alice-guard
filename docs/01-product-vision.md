@@ -1,5 +1,7 @@
 # Alice Guard — Product Vision
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 ## One-line definition
 
 Alice Guard is a secure, auditable, least-privilege financial execution layer that lets an AI agent propose onchain actions without giving the model unrestricted wallet authority.

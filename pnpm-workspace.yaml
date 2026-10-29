@@ -1,2 +1,7 @@
 allowBuilds:
   esbuild@0.28.2: true
+
+# Patch vulnerable transitive peer dependencies until upstream minimums advance.
+overrides:
+  'vite@>=8.3.0 <=8.3.2': 8.3.3
+  'source-map-js@<1.2.2': 1.2.2

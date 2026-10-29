@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SqliteAuditStore } from "../../src/adapters/audit/sqlite-audit-store";
 import { DemoApiService } from "../../src/server/demo-server";
@@ -115,5 +115,47 @@ describe("judge demo API trust boundary", () => {
       "request.received", "intent.accepted", "risk.evaluated", "policy.decided", "plan.validated", "capsule.created", "capsule.verified",
     ]);
     expect(JSON.stringify(reply.body)).not.toContain("audit.sqlite");
+  });
+
+  it("bounds concurrent runs and reserves capacity before awaiting", async () => {
+    const bounded = new DemoApiService(store, undefined, { maxAuditRecords: 2, maxConcurrentRuns: 2 });
+    const replies = await Promise.all(Array.from({ length: 8 }, () => bounded.run({ scenario: "allowed-small-swap" })));
+    expect(replies.filter(reply => reply.status === 200)).toHaveLength(2);
+    expect(replies.filter(reply => reply.status === 429)).toHaveLength(6);
+    expect(store.count()).toBe(2);
+    expect(store.verifyChain()).toBe(true);
+    const restartedService = new DemoApiService(store, undefined, { maxAuditRecords: 2 });
+    expect(await restartedService.run({ scenario: "denied-over-limit" })).toMatchObject({ status: 429, body: { error: { code: "DEMO_CAPACITY_REACHED" } } });
+    expect(store.count()).toBe(2);
+  });
+
+  it("releases its concurrency slot after a failed audit write", async () => {
+    const bounded = new DemoApiService(store, undefined, { maxConcurrentRuns: 1 });
+    vi.spyOn(store, "append").mockImplementationOnce(() => { throw new Error("synthetic disk error"); });
+    expect((await bounded.run({ scenario: "allowed-small-swap" })).status).toBe(500);
+    expect((await bounded.run({ scenario: "allowed-small-swap" })).status).toBe(200);
+    expect(store.count()).toBe(1);
+  });
+
+  it("reads audits once, limits summaries, and verifies records outside the displayed window", async () => {
+    const bounded = new DemoApiService(store, undefined, { auditSummaryLimit: 1 });
+    await bounded.run({ scenario: "allowed-small-swap" });
+    await bounded.run({ scenario: "denied-over-limit" });
+    const snapshot = store.list();
+    const listSpy = vi.spyOn(store, "list");
+    expect(bounded.audits().body).toMatchObject({ chainValid: true, totalRecords: 2, truncated: true, records: [{ status: "denied" }] });
+    expect(listSpy).toHaveBeenCalledTimes(1);
+    listSpy.mockReturnValue([{ ...snapshot[0]!, recordHash: `0x${"ff".repeat(32)}` }, snapshot[1]!]);
+    expect(bounded.audits().body).toMatchObject({ chainValid: false, totalRecords: 2 });
+  });
+
+  it("bounds simultaneous attack cases without changing the control result", async () => {
+    const bounded = new DemoApiService(store, undefined, { maxConcurrentAttacks: 1 });
+    const catalog = await bounded.dispatch("GET", "/api/attack-lab");
+    const caseId = (catalog.body as { cases: { id: string }[] }).cases[0]!.id;
+    const replies = await Promise.all(Array.from({ length: 3 }, () => bounded.dispatch("POST", "/api/attack-lab", { caseId })));
+    expect(replies.filter(reply => reply.status === 200)).toHaveLength(1);
+    expect(replies.filter(reply => reply.status === 429)).toHaveLength(2);
+    expect((await bounded.dispatch("POST", "/api/attack-lab", { caseId })).body).toMatchObject({ passed: true });
   });
 });

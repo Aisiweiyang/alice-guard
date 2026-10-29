@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import type { Server } from "node:http";
+import { request as httpRequest, type Server } from "node:http";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { SqliteAuditStore } from "../../src/adapters/audit/sqlite-audit-store";
@@ -117,5 +117,51 @@ describe("local judge demo server", () => {
     expect(store.list()).toHaveLength(1);
     const unsupported = await fetch(`${origin}/api/evidence/judge`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({path: ".env.local"})});
     expect(unsupported.status).toBe(404);
+  });
+
+  it("rejects malformed absolute targets without crashing and continues serving health", async () => {
+    const url = new URL(origin);
+    for (const target of ["http://[", "//unexpected.example/api/health", "/api\\health"]) {
+      const status = await new Promise<number | undefined>((resolveStatus, reject) => {
+        const request = httpRequest({ hostname: url.hostname, port: url.port, path: target, method: "GET" }, response => {
+          response.resume();
+          response.on("end", () => resolveStatus(response.statusCode));
+        });
+        request.on("error", reject);
+        request.end();
+      });
+      expect(status).toBe(400);
+    }
+    expect((await fetch(`${origin}/api/health`)).status).toBe(200);
+  });
+
+  it("rejects cross-origin browsers while accepting same-origin and CLI clients", async () => {
+    for (const headers of [{ Origin: "https://foreign.example" }, { Origin: "null" }, { "Sec-Fetch-Site": "cross-site" }]) {
+      const response = await fetch(`${origin}/api/health`, { headers });
+      expect(response.status).toBe(403);
+      expect(await response.json()).toMatchObject({ error: { code: "CROSS_ORIGIN_REQUEST" } });
+    }
+    expect((await fetch(`${origin}/api/health`, { headers: { Origin: origin } })).status).toBe(200);
+    expect((await fetch(`${origin}/api/health`)).status).toBe(200);
+  });
+
+  it("requires the exact JSON media type", async () => {
+    for (const type of ["application/jsonp", "application/json-invalid"]) {
+      expect((await fetch(`${origin}/api/demo`, { method: "POST", headers: { "Content-Type": type }, body: "{}" })).status).toBe(415);
+    }
+    const accepted = await fetch(`${origin}/api/demo`, { method: "POST", headers: { "Content-Type": "APPLICATION/JSON; charset=utf-8" }, body: JSON.stringify({ scenario: "denied-prompt-injection" }) });
+    expect(accepted.status).toBe(200);
+  });
+
+  it("returns a clear capacity error while keeping health available", async () => {
+    await new DemoApiService(store).run({ scenario: "allowed-small-swap" });
+    await new Promise<void>(resolveClosed => server.close(() => resolveClosed()));
+    server = createDemoHttpServer(new DemoApiService(store, undefined, { maxAuditRecords: 1 }));
+    origin = `http://127.0.0.1:${await listenOnLocalhost(server, 0)}`;
+    const response = await fetch(`${origin}/api/demo`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ scenario: "allowed-small-swap" }) });
+    expect(response.status).toBe(429);
+    expect(response.headers.get("retry-after")).toBeNull();
+    expect(await response.json()).toMatchObject({ error: { code: "DEMO_CAPACITY_REACHED" } });
+    expect((await fetch(`${origin}/api/health`)).status).toBe(200);
   });
 });

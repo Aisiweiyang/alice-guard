@@ -1,6 +1,6 @@
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { DatabaseSync } from "node:sqlite";
+import { DatabaseSync, type StatementSync } from "node:sqlite";
 
 import {
   computeAuditRecordHash,
@@ -16,11 +16,15 @@ interface StoredRow {
 
 export class SqliteAuditStore implements AuditStore {
   readonly #database: DatabaseSync;
+  readonly #latestHash: StatementSync;
+  readonly #insert: StatementSync;
+  readonly #records: StatementSync;
+  readonly #count: StatementSync;
 
   constructor(path: string) {
     if (path !== ":memory:") mkdirSync(dirname(resolve(path)), { recursive: true });
     this.#database = new DatabaseSync(path);
-    this.#database.exec("PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;");
+    this.#database.exec("PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;");
     this.#database.exec(`
       CREATE TABLE IF NOT EXISTS audit_records (
         sequence INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,34 +44,34 @@ export class SqliteAuditStore implements AuditStore {
         SELECT RAISE(ABORT, 'AUDIT_RECORDS_ARE_APPEND_ONLY');
       END;
     `);
+    this.#latestHash = this.#database.prepare("SELECT record_hash FROM audit_records ORDER BY sequence DESC LIMIT 1");
+    this.#insert = this.#database.prepare(`
+      INSERT INTO audit_records (
+        audit_id, request_id, record_hash, previous_record_hash, created_at, record_json
+      ) VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    this.#records = this.#database.prepare("SELECT record_json FROM audit_records ORDER BY sequence ASC");
+    this.#count = this.#database.prepare("SELECT COUNT(*) AS count FROM audit_records");
   }
 
   append(material: NewAuditRecord): AuditRecord {
     this.#database.exec("BEGIN IMMEDIATE");
     try {
-      const prior = this.#database
-        .prepare("SELECT record_hash FROM audit_records ORDER BY sequence DESC LIMIT 1")
-        .get() as { record_hash: string } | undefined;
+      const prior = this.#latestHash.get() as { record_hash: string } | undefined;
       const unsigned = AuditRecordSchema.parse({
         ...material,
         previousRecordHash: prior?.record_hash ?? null,
         recordHash: `0x${"00".repeat(32)}`,
       });
       const record = AuditRecordSchema.parse({ ...unsigned, recordHash: computeAuditRecordHash(unsigned) });
-      this.#database
-        .prepare(`
-          INSERT INTO audit_records (
-            audit_id, request_id, record_hash, previous_record_hash, created_at, record_json
-          ) VALUES (?, ?, ?, ?, ?, ?)
-        `)
-        .run(
-          record.auditId,
-          record.request.requestId,
-          record.recordHash,
-          record.previousRecordHash,
-          record.createdAt,
-          JSON.stringify(record),
-        );
+      this.#insert.run(
+        record.auditId,
+        record.request.requestId,
+        record.recordHash,
+        record.previousRecordHash,
+        record.createdAt,
+        JSON.stringify(record),
+      );
       this.#database.exec("COMMIT");
       return record;
     } catch (error: unknown) {
@@ -77,10 +81,12 @@ export class SqliteAuditStore implements AuditStore {
   }
 
   list(): readonly AuditRecord[] {
-    const rows = this.#database
-      .prepare("SELECT record_json FROM audit_records ORDER BY sequence ASC")
-      .all() as unknown as StoredRow[];
+    const rows = this.#records.all() as unknown as StoredRow[];
     return rows.map((row) => AuditRecordSchema.parse(JSON.parse(row.record_json)));
+  }
+
+  count(): number {
+    return (this.#count.get() as { count: number }).count;
   }
 
   verifyChain(): boolean {

@@ -1,5 +1,7 @@
 # 公开演示部署交接（Render Blueprint）
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 更新日期：2026-10-07。仓库根目录的 `render.yaml` 已准备离线 Web 服务。**本机尚无已核验的公开 URL。** 该部署只用于评委体验固定场景、Proof View、Attack Lab 和 Judge Evidence Pack。后续发布、指定提交更新与回退见 [交付与更新说明](26-delivery-and-updates.md)。
 
 ## 已在代码中固定的边界

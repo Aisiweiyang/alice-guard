@@ -1,5 +1,7 @@
 # Alice Guard 2.0 威胁模型
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 日期：2026-09-18。范围：当前 Decision Capsule、服务端提案验证、固定离线 Attack Lab、SQLite 审计/状态组件，以及独立的 Privy 只读状态卡。与 [架构及实现记录](19-alice-guard-v2-proof-foundation.md) 和 [评委演示流程](20-judge-demo-runbook.md) 配套阅读。
 
 这是原型的威胁边界和证据说明，不是安全审计认证、经济风险保证或生产就绪声明。当前没有可用的真实交易执行器。

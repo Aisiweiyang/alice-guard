@@ -1,5 +1,7 @@
 # Architecture Proposal
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 ## Recommendation
 
 Build a modular monolith with ports and adapters, not microservices and not an initial monorepo. Keep the security-critical domain and engines free of network calls. External systems provide typed snapshots; pure functions evaluate those snapshots.

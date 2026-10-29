@@ -1,5 +1,7 @@
 # Open Questions and Required Decisions
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 > Phase 1 不要求项目所有者立即回答。默认技术决策已经记录在 `docs/11-decision-log.md`；只有启用主网或真实资金时才必须再次获得明确确认。
 
 ## Decisions requested from the project owner

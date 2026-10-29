@@ -1,0 +1,37 @@
+name: Offline checks
+
+on:
+  push:
+    branches: [main, opensource-v0]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: offline-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  offline:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - run: npx --yes pnpm@11.19.0 install --frozen-lockfile
+      - run: npm run check
+      - run: node --check src/ui/app.js
+      - run: npm test
+      # npm test already includes the 51-case, 100-repeat attack benchmark.
+      - run: npm run smoke:evidence
+      - run: npm run check:public

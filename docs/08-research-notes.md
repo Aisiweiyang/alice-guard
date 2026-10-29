@@ -1,5 +1,7 @@
 # Official Research Notes
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 Research cutoff: **2026-09-12, Asia/Shanghai**. Dynamic chain and SDK facts must be refreshed before implementation and again before the demo.
 
 ## 1. Monad

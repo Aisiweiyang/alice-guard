@@ -209,6 +209,7 @@ describe("SQLite spend reservation store", () => {
     const initializer = new SqliteSpendReservationStore(path);
     initializer.close();
     const workers: Worker[] = [];
+    let reservationTimer: ReturnType<typeof setTimeout> | undefined;
     try {
       const attempts = ["00000000-0000-4000-8000-000000001020", "00000000-0000-4000-8000-000000001021"].map((requestId) => {
         const worker = new Worker(`
@@ -235,7 +236,12 @@ describe("SQLite spend reservation store", () => {
       });
       await Promise.all(attempts.map((attempt) => attempt.ready));
       workers.forEach((worker) => worker.postMessage("reserve"));
-      const results = await Promise.all(attempts.map((attempt) => attempt.result));
+      // Cold tsx imports can contend with the exhaustive replay benchmark on
+      // Windows. Give startup a separate allowance, but bound the actual race.
+      const deadline = new Promise<never>((_resolve, reject) => {
+        reservationTimer = setTimeout(() => reject(new Error("CONCURRENT_RESERVATION_DEADLINE_EXCEEDED")), 10_000);
+      });
+      const results = await Promise.race([Promise.all(attempts.map((attempt) => attempt.result)), deadline]);
       expect(results.filter((result) => result.ok)).toHaveLength(1);
       expect(results.filter((result) => !result.ok)).toEqual([{ ok: false, reason: "ROLLING_LIMIT_EXCEEDED" }]);
       const observer = new SqliteSpendReservationStore(path);
@@ -246,8 +252,9 @@ describe("SQLite spend reservation store", () => {
         observer.close();
       }
     } finally {
+      if (reservationTimer !== undefined) clearTimeout(reservationTimer);
       await Promise.all(workers.map((worker) => worker.terminate()));
       rmSync(directory, { recursive: true });
     }
-  }, 20_000);
+  }, 60_000);
 });

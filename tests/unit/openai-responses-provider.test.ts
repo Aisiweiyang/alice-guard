@@ -103,4 +103,20 @@ describe("OpenAI Responses intent provider", () => {
   it("rejects insecure non-local provider URLs", () => {
     expect(() => new OpenAIResponsesProvider({ apiKey: "test-key", model: "test-model", baseUrl: "http://remote.example" })).toThrow("INSECURE_PROVIDER_URL");
   });
+
+  it.each(["ftp://localhost/v1", "file://localhost/v1", "http://remote.example/v1"])("rejects unsafe protocol or host: %s", baseUrl => {
+    expect(() => new OpenAIResponsesProvider({ apiKey: "test-key", model: "test-model", baseUrl })).toThrow("INSECURE_PROVIDER_URL");
+  });
+
+  it.each(["https://user:pass@example.com/v1", "https://example.com/v1?key=value", "https://example.com/v1#fragment"])("rejects URL credentials or ambiguous suffixes: %s", baseUrl => {
+    expect(() => new OpenAIResponsesProvider({ apiKey: "test-key", model: "test-model", baseUrl })).toThrow("INVALID_PROVIDER_URL");
+  });
+
+  it.each([0, -1, NaN, Infinity, 60_001, 1.5])("rejects an unbounded timeout: %s", timeoutMs => {
+    expect(() => new OpenAIResponsesProvider({ apiKey: "test-key", model: "test-model", timeoutMs })).toThrow("INVALID_PROVIDER_TIMEOUT");
+  });
+
+  it.each(["http://localhost:8080/v1", "http://127.0.0.1:8080/v1", "http://[::1]:8080/v1", "https://example.com/v1"])("accepts a supported provider base: %s", baseUrl => {
+    expect(() => new OpenAIResponsesProvider({ apiKey: "test-key", model: "test-model", baseUrl })).not.toThrow();
+  });
 });

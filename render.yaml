@@ -1,8 +1,8 @@
 services:
   - type: web
     runtime: node
-    name: alice-guard-judge-demo
-    branch: phase-4b-live-privy
+    name: alice-guard-offline-demo
+    branch: main
     plan: free
     region: singapore
     buildCommand: npx --yes pnpm@11.19.0 install --frozen-lockfile --prod=false

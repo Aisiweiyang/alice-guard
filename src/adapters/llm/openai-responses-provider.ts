@@ -100,13 +100,17 @@ export class OpenAIResponsesProvider implements LLMProvider {
     if (options.model.trim().length === 0) throw new Error("MODEL_REQUIRED");
     const baseUrl = (options.baseUrl ?? "https://api.openai.com/v1").replace(/\/+$/, "");
     const parsedUrl = new URL(baseUrl);
-    if (parsedUrl.protocol !== "https:" && parsedUrl.hostname !== "localhost" && parsedUrl.hostname !== "127.0.0.1") {
+    const localHttp = parsedUrl.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(parsedUrl.hostname);
+    if (parsedUrl.protocol !== "https:" && !localHttp) {
       throw new Error("INSECURE_PROVIDER_URL");
     }
+    if (parsedUrl.username || parsedUrl.password || parsedUrl.search || parsedUrl.hash) throw new Error("INVALID_PROVIDER_URL");
+    const timeoutMs = options.timeoutMs ?? 15_000;
+    if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 60_000) throw new Error("INVALID_PROVIDER_TIMEOUT");
     this.apiKey = options.apiKey;
     this.model = options.model;
     this.endpoint = `${baseUrl}/responses`;
-    this.timeoutMs = options.timeoutMs ?? 15_000;
+    this.timeoutMs = timeoutMs;
     this.fetchImplementation = options.fetchImplementation ?? fetch;
   }
 

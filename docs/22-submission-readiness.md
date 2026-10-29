@@ -1,5 +1,7 @@
 # 比赛提交准备与证据包
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 核查日期：2026-09-27。当前状态：**可复核离线演示已形成并同步至 GitHub；完整参赛资格、公开部署和真实执行仍未完成。** 本页不是替主办方作资格判断。
 
 ## 官方规则核查
@@ -29,7 +31,7 @@
 网页第 06 区域 `Judge Evidence Pack` 可生成并下载固定 fixture JSON；它与刚点击的网页会话审计分开。下载不上传任何内容。
 
 ```powershell
-cd "C:\Users\Asus\Desktop\Alice\Alice Guard"
+cd "alice-guard"
 npm.cmd run evidence:judge
 npm.cmd run evidence:judge:verify -- "实际输出的 judge-evidence.json 路径"
 ```

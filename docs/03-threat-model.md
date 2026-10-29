@@ -1,5 +1,7 @@
 # Threat Model
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 ## Scope
 
 This model covers the hackathon path from natural-language request to Monad swap execution using a dedicated dev/agent wallet. It does not claim to protect a cold wallet, arbitrary protocols, bridges, cross-chain messages, generalized contract calls, or compromised user devices.

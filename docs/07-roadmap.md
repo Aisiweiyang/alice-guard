@@ -1,5 +1,7 @@
 # Phase 0–8 Delivery Roadmap
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 ## Operating rule
 
 Each phase is a security gate. A later phase may begin only when the previous phase's definition of done is met. Mainnet is a separate release decision, not the natural conclusion of the roadmap.

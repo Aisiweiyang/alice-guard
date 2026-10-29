@@ -254,12 +254,13 @@ function renderWalletPolicy(walletPolicy) {
   container.append(element(
     "p",
     "policy-mode-note",
-    "This decision trace uses the committed local manifest. Live read-only Privy binding evidence is shown above.",
+    "Local policy template only. Coverage labels do not establish live enforcement; optional read-only binding status is shown separately.",
   ));
   const list = element("ul", "coverage-list");
   walletPolicy.coverage.forEach((entry) => {
     const item = element("li", "coverage-item");
-    item.append(element("code", "", entry.rule), element("span", entry.enforcement === "PRIVY_ENFORCED" ? "coverage-privy" : "coverage-app", entry.enforcement));
+    const labels = { PRIVY_ENFORCED: "MANIFEST RULE", APP_ONLY: "APP CHECK", UNSUPPORTED: "UNSUPPORTED" };
+    item.append(element("code", "", entry.rule), element("span", "coverage-app", labels[entry.enforcement] || "UNVERIFIED"));
     list.append(item);
   });
   container.append(list);
@@ -515,7 +516,7 @@ async function buildEvidencePack() {
         ["Runs per case", "1 (not the benchmark)"], ["Fixture time", pack.fixtureTime], ["Attestation", pack.attestation]], "definition-grid attack-details"));
     addHash(container, "PACK HASH", pack.packHash);
     container.append(element("p", "policy-mode-note", "Replay locally with npm.cmd run evidence:judge:verify -- <downloaded-file.json>. The verifier regenerates the reference fixtures; it does not trust a package's own pass flag."));
-    container.append(element("p", "policy-mode-note", "This confirms reproducibility against the same trusted code, not a signature, live execution or hackathon eligibility."));
+    container.append(element("p", "policy-mode-note", "This confirms reproducibility against the same trusted code, not a signature or live execution."));
     byId("evidence-download").hidden = false;
     setBadge("evidence-state", "FIXTURE PACK READY", "allow");
   } catch {

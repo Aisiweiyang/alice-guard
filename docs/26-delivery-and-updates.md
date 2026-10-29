@@ -1,5 +1,7 @@
 # 交付、更新与回退
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 更新：2026-10-07（Asia/Shanghai）。交付对象为 Alice Guard 2.0 离线比赛原型，当前比赛分支是 `phase-4b-live-privy`。
 
 ## 本次交付
@@ -17,7 +19,7 @@
 在正常 Windows PowerShell 中，从通过 Git 克隆、已提交且工作区干净的版本运行（ZIP 副本不含 `.git`，不能直接重新构建交付或执行 `git pull`）：
 
 ```powershell
-cd "C:\Users\Asus\Desktop\Alice\Alice Guard"
+cd "alice-guard"
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-delivery.ps1
 ```
 

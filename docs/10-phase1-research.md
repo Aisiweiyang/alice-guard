@@ -1,5 +1,7 @@
 # Phase 1 Research: Runtime Enforcement and Agent Security
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 Research cutoff: **2026-09-13, Asia/Shanghai**. Papers and young repositories are design evidence, not dependencies or production guarantees.
 
 ## What was reviewed

@@ -1,5 +1,7 @@
 # Phase 3.6 — Judge-facing Demo Web UI
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 ## 目标
 
 提供一个评委可直接操作的本地 Web 界面，把 Alice Guard 的核心价值压缩成一条可观察的安全流水线：

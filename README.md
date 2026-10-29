@@ -1,124 +1,76 @@
 # Alice Guard
 
-Secure financial execution and permission layer for AI agents.
+**作者与维护者：[Aisiweiyang](https://github.com/Aisiweiyang)** · [MIT 许可证](LICENSE) · [English](README.en.md)
 
-> LLM proposes. Deterministic code decides. Wallet policy enforces. Blockchain settles.
+面向 AI Agent 金融提案的确定性检查与审计工具。将请求、证据、风险规则、策略和交易计划绑定在同一份决策记录中，再从服务端保留的上下文复核结果，展示允许、拒绝和需要确认的原因。
 
-2026-10-07：项目已迁移到 `C:\Users\Asus\Desktop\Alice\Alice Guard`，本地依赖链接已修复。比赛收尾进度、验证记录和待提交材料见 [Metropolis 收尾清单](docs/25-metropolis-final-checklist.md)。可双击根目录 `start-demo.cmd` 启动离线演示，然后打开终端显示的本地地址。
+**当前为 v0.1.0 初始开源版，后续不定期更新和维护，暂无固定更新周期。** 默认演示完全离线，不需要 API Key、Privy 账号或钱包。
 
-交付 ZIP、匹配提交的证据核验、本地更新与 Render 手动部署／回退步骤见 [交付与更新说明](docs/26-delivery-and-updates.md)。从工作区干净的已提交版本运行 `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-delivery.ps1` 可重建经过完整离线验证的交付包。
+![Alice Guard 离线提案检查界面](docs/images/demo.png)
 
-历史完成状态：Phase 4B-2 已创建专用 Privy Policy 与零余额 EVM 测试钱包，并通过当时的远程回读核验；Phase 4C 提供评委可见的只读状态页和脱敏证据导出。本目录不会提交钱包凭据，也没有交易签名、广播或充值能力；默认保持 `ALICE_GUARD_WALLET_MODE=disabled`。2026-09-15 的只读检查显示 Kuru 测试网 MON/USDC 市场没有 ask 流动性；该记录不是当前链上状态，本轮没有重新核验远端资源。
+## 可以做什么
 
-## Hackathon offline demo
+- **提案检查**：限定意图格式，核对原始请求，按确定性风险与权限规则裁决。
+- **计划复核**：检查目标合约、金额、滑点、交易字节、时效、模拟结果与配置绑定。
+- **决策记录**：生成 Decision Capsule 和 SQLite 哈希链审计，支持本地重放。
+- **交互演示**：查看三个固定场景、证据来源、51 个攻击变体与正常对照。
+- **证据导出**：导出合成用例并独立重建参考结果，不信任导出文件自己的通过标记。
+- **可选适配器**：保留模型意图解析、Monad/Kuru 只读查询、Privy 策略检查及受控配置工具；离线演示不会调用它们。
 
-2026-09-18 本地升级：新增 Decision Capsule、服务端原始快照绑定检查、可重放审计快照、Proof View 与离线 Attack Lab，并加固预算状态和持久 nonce。所有 Capsule 均为 `UNATTESTED`；提案通过不代表可执行，签名/广播仍关闭。设计、测试口径和未完成边界见 [2.0 基础版本说明](docs/19-alice-guard-v2-proof-foundation.md)。
+当前只覆盖 **Monad 测试网 USDC → MON** 的有限计划模型，不是通用交易执行器。签名、广播和资金操作在演示与执行验证器中均关闭；检查通过也不会授权执行。
 
-运行离线攻击回归（固定输入、每例 100 次，输出 JSON）：`npm.cmd run test:attacks`。不加载 `.env.local`，不访问真实钱包。
+## 快速开始
 
-新增评委证据包：网页第 06 区域可下载，或运行 `npm.cmd run evidence:judge`。随后用 `npm.cmd run evidence:judge:verify -- "导出的 JSON 路径"` 在单独进程复核。证据包只包含固定离线 fixture（三场景及单遍 51 例），不导出当前会话历史；复核会重新构建本地参考结果，不只检查包内自带哈希。
+需要 **Node.js 24.19 或更新版本**，推荐 Node.js 24 LTS：
 
-比赛材料：[三分钟演示流程](docs/20-judge-demo-runbook.md)、[威胁模型](docs/21-v2-threat-model.md)、[提交准备与未核实规则](docs/22-submission-readiness.md)、[可复制的提交文案与视频镜头表](docs/23-submission-kit.md)、[公开演示部署交接](docs/24-public-demo-deploy.md)。签名、广播和充值仍关闭。
-
-命令行运行三个确定性比赛场景：
-
-```powershell
-npm.cmd run demo
+```bash
+git clone https://github.com/Aisiweiyang/alice-guard.git
+cd alice-guard
+npx --yes pnpm@11.19.0 install --frozen-lockfile
+npm run demo:web
 ```
 
-输出包括允许的小额 swap、超过限额的拒绝、Prompt Injection 拒绝，以及一份本地 SQLite 哈希链审计数据库。该命令使用明确标记的离线证据和模拟 fixture，不连接钱包、不签名、不广播，也不把 fixture 描述成真实链上执行。
+打开 `http://127.0.0.1:4187`。Windows 也可在安装依赖后双击 `start-demo.cmd`。端口被占用时更换 `ALICE_GUARD_DEMO_PORT`，以终端实际输出为准。
 
-启动评委可视化 Web Demo：
+**无需创建 `.env.local`。** 三个场景分别是 20 USDC 提案、超限拒绝和提示注入拒绝，均使用固定时间、合成证据与模拟结果。
 
-```powershell
-npm.cmd run demo:web
+## 检查与重放
+
+```bash
+npm run demo
+npm run check
+npm test
+npm run test:attacks
+npm run evidence:judge
+npm run evidence:judge:verify -- "<上一步输出的 judge-evidence.json 路径>"
+npm run check:public
 ```
 
-然后打开 `http://127.0.0.1:4187`。浏览器只提交预定义场景 ID，服务端负责意图、风险、策略、Plan Guard 和审计链计算；页面不会接收钱包地址、calldata、合约地址或客户端给出的判定结果。
+`test:attacks` 对 51 个固定用例各运行 100 次；证据导出只运行单遍。命令中的 `judge` 是保留的历史接口名。运行产物写入 `demo-output/`，不会覆盖旧会话，也不会提交到 Git。
 
-在本机同时展示实时 Privy policy/wallet 绑定与 Monad 余额证明：
+`check:public` 需要 Git 克隆的仓库根目录；下载 ZIP 后可安装和运行演示，但 ZIP 不包含 Git 历史。
 
-```powershell
-npm.cmd run demo:web:live
-```
+演示服务每次启动最多保存 1,000 条审计记录，最多并行处理 4 个演示请求和 2 个攻击用例；满额会返回明确提示，重启后生成新会话，原记录保留。审计接口只展示最近 50 条摘要，但仍验证完整会话链。公网使用需另配访问控制与请求速率限制。
 
-该模式只调用 Privy GET 接口和 Monad 公共 RPC。浏览器只接收公开 ID、地址、哈希、布尔核验状态和余额；签名、广播、充值能力仍固定关闭。生成可提交给评委的脱敏 JSON 证据：
+## 项目结构
 
-```powershell
-npm.cmd run evidence:privy
-```
+| 目录 | 内容 |
+|---|---|
+| `src/domain` | 严格数据结构、金额表示、哈希、Capsule 与执行信封 |
+| `src/engines` / `src/application` | 风险与策略规则、计划复核、审计及证据重放 |
+| `src/adapters` | SQLite、模型、只读链查询和 Privy 接口 |
+| `src/server` / `src/ui` | 离线 HTTP 服务和浏览器界面 |
+| `tests` | 单元、集成、拒绝路径、变体与对照测试 |
+| `scripts` / `docs` | 本地命令、发布检查和技术文档 |
 
-## Privy Layer-2 policy preview
+## 使用边界
 
-离线生成确定性的 Privy policy manifest 与规则覆盖矩阵：
+- 默认演示是 `OFFLINE_FIXTURE`，Capsule 为 `UNATTESTED`。哈希只能核对内容一致性，不能证明来源真实、经济安全或钱包授权。
+- 固定用例的通过率不是现实提示注入防御率，也不是独立安全审计、真实 Privy 拒绝或真实链上执行证据。
+- 可选 Privy provisioning 命令会创建远端资源，需要单独配置和精确确认哈希；不属于快速开始，不应在 CI 或公开演示中启用。
+- 历史测试网地址、ABI、第三方接口和方法假设可能已变化，接入前必须重新核验。
+- 本版没有实现 Alice 量化系统接入、实盘交易、账户托管或投资建议。
 
-```powershell
-npm.cmd run privy:policy:render
-```
+文档：[使用说明](docs/USAGE.md) · [架构](docs/ARCHITECTURE.md) · [本轮验证](docs/VALIDATION.md) · [文档索引](docs/INDEX.md) · [贡献](CONTRIBUTING.md) · [安全](SECURITY.md)
 
-安全检查远端 policy。默认缺少凭据时返回 `NOT_CONFIGURED`，且不会尝试签名或广播：
-
-```powershell
-npm.cmd run privy:policy:verify
-```
-
-只读远端核验所需的本地环境变量见 `.env.example`。秘密值不得提交到 Git、传给浏览器或写入日志。
-
-## Privy Phase 4B/4C live evidence
-
-先在本机终端运行隐藏输入配置工具。它把秘密写入 Git 已忽略的 `.env.local`，并将钱包模式保持为 `disabled`：
-
-```powershell
-npm.cmd run privy:configure
-npm.cmd run privy:owner:verify
-```
-
-生成确定性的测试钱包/策略计划及只读负向/撤销计划：
-
-```powershell
-npm.cmd run privy:wallet:plan
-npm.cmd run privy:wallet:denials
-npm.cmd run privy:wallet:revoke:plan
-```
-
-已有远端 policy、wallet 和 authorization key ID 后，可运行只读绑定核验：
-
-```powershell
-$env:ALICE_GUARD_WALLET_MODE="privy-verify"
-npm.cmd run privy:wallet:verify
-```
-
-Phase 4B-2 的远端入口是 `privy:wallet:provision`；缺少 `--apply`、精确 confirmation hash 或临时 `privy-provision` 模式时都会拒绝执行。当前公开资源为 policy `mx1nnjw8cs4jlh0hzenclu6q`、wallet `gpqzfry67wit2ef7qajovkot`、地址 `0x73180c3581933490E2108036C8F89b0224B87285`。不要重复 provisioning；使用 `demo:web:live` 或 `evidence:privy` 做只读核验。完整交接见 `docs/17-phase4b-live-privy.md` 与 `docs/18-phase4c-live-privy-status.md`。
-
-## Phase 0 artifacts
-
-- `docs/01-product-vision.md` — 产品定位与原则
-- `docs/02-architecture.md` — 推荐架构与信任边界
-- `docs/03-threat-model.md` — 威胁模型
-- `docs/04-security-model.md` — 双层安全与权限模型
-- `docs/05-mvp.md` — MVP 边界与优先级
-- `docs/06-tech-stack.md` — 技术栈与仓库结构
-- `docs/07-roadmap.md` — 分阶段实施计划
-- `docs/08-research-notes.md` — 官方资料研究记录
-- `docs/09-open-questions.md` — 待确认决策
-- `docs/10-phase1-research.md` — Agent 安全论文与 GitHub 实践研究
-- `docs/11-decision-log.md` — 已代为确定的默认工程决策与安全门槛
-- `docs/12-phase2-implementation.md` — Intent Parser、来源校验与 Provider 适配说明
-- `docs/13-phase3-read-plan.md` — Monad/Kuru 只读核验、ABI 漂移、计划门禁与当前 live blocker
-- `docs/14-hackathon-demo-core.md` — 比赛 Demo 编排器、SQLite 审计链与固定演示场景
-- `docs/15-demo-web-ui.md` — 评委 Web Demo、API 信任边界、安全展示 DTO 与演示说明
-- `docs/16-phase4-privy-research.md` — Privy Layer-2 策略映射、已知限制与安全运行模式
-- `docs/17-phase4b-live-privy.md` — Phase 4B-1 安全准备、只读核验、人工工作和下一阶段门槛
-- `docs/18-phase4c-live-privy-status.md` — 评委可见的 Privy/Monad 只读证据、API 边界与运行方式
-- `src/domain/schemas.ts` — 核心 TypeScript + Zod domain schema 设计稿
-
-## Phase 1 commands
-
-```powershell
-npx.cmd -y pnpm@11.19.0 install --frozen-lockfile
-npm.cmd run check
-npm.cmd test
-npm.cmd run verify:testnet
-```
-
-研究基准日期：2026-09-13（Asia/Shanghai）。链配置、协议地址、SDK 接口在实现前必须再次从官方来源核验。
+源码与原创文档按 MIT 许可证开放；第三方组件保留各自版权与许可，见 [第三方声明](THIRD_PARTY_NOTICES.md)。

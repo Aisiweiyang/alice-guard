@@ -1,5 +1,7 @@
 # Alice Guard 2.0：三分钟比赛演示
 
+> 历史技术记录。当前入口与验证范围见 [文档索引](INDEX.md) 和 [验证记录](VALIDATION.md)。
+
 适用版本：Decision Capsule / Proof View / Offline Attack Lab 基础版。编写日期：2026-09-18。本文是可照读的演示流程；技术边界见 [V2 Threat Model](21-v2-threat-model.md)。
 
 ## 一句话定位
@@ -13,7 +15,7 @@ Alice Guard 把 AI 的金融提案转换为可复核的决策记录，在服务�
 在项目目录打开 PowerShell：
 
 ```powershell
-cd "C:\Users\Asus\Desktop\Alice\Alice Guard"
+cd "alice-guard"
 npm.cmd run demo:web
 ```
 
